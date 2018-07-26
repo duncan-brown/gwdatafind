@@ -89,11 +89,10 @@ build:debian:stretch:
   stage: test
   image: python
   before_script:
-    - python -m pip install six
     - python -m pip install .
   script:
-    - python -c "import ligo.gracedb"
-    - gracedb --help
+    - py.test --pyargs gwdatafind
+    - python -m gwdatafind --help
 
 test:python2.7:
   <<: *test
