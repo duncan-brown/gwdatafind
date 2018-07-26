@@ -19,6 +19,8 @@
 """Query the DataFind service for information.
 """
 
+from __future__ import print_function
+
 import argparse
 import re
 import sys
