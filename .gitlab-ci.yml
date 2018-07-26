@@ -1,11 +1,10 @@
 stages:
   - build
   - test
+  - package
 
-# -- build ------------------
-
-.build: &build
-  stage: build
+.dist: &build-artifact
+  stage: package
   after_script:
     - ls -l dist/
   artifacts:
@@ -13,15 +12,40 @@ stages:
     paths:
       - dist
 
-build:tarball:
-  <<: *build
+# -- build ------------------
+
+package:tarball:
+  <<: *build-artifact
+  stage: build
   image: python:3.6
   script:
     - python -m pip install setuptools
     - python setup.py sdist bdist_wheel
 
-build:el7:
-  <<: *build
+# -- test -------------------
+
+.test: &test
+  stage: test
+  image: python
+  before_script:
+    - python -m pip install dist/gwdatafind*tar.gz
+    - python -m pip install pytest pytest-cov
+  script:
+    - py.test --pyargs gwdatafind --cov=gwdatafind
+    - python -m gwdatafind --help
+
+test:python2.7:
+  <<: *test
+  image: python:2.7
+
+test:python3.6:
+  <<: *test
+  image: python:3.6
+
+# -- package ----------------
+
+package:el7:
+  <<: *build-artifact
   image: ligo/base:el7
   before_script:
     - yum install -yq
@@ -41,8 +65,8 @@ build:el7:
     - mv -v ~/rpmbuild/RPMS/*/python*-gwdatafind-*.rpm dist/
     - rm -rf dist/*.tar.gz
 
-.build:debian: &build_debian
-  <<: *build
+.package:debian: &build_debian
+  <<: *build-artifact
   before_script:
     - apt-get update -yqq
     - apt-get install -yq
@@ -75,29 +99,10 @@ build:el7:
     - popd
     - rm -rf dist/gwdatafind*
 
-build:debian:jessie:
-  <<: *build_debian
+package:debian:jessie:
+  <<: *build-artifact_debian
   image: ligo/base:jessie
 
-build:debian:stretch:
-  <<: *build_debian
+package:debian:stretch:
+  <<: *build-artifact_debian
   image: ligo/base:stretch
-
-# -- test -------------------
-
-.test: &test
-  stage: test
-  image: python
-  before_script:
-    - python -m pip install .
-  script:
-    - py.test --pyargs gwdatafind
-    - python -m gwdatafind --help
-
-test:python2.7:
-  <<: *test
-  image: python:2.7
-
-test:python3.6:
-  <<: *test
-  image: python:3.6
