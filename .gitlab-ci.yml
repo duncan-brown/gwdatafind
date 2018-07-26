@@ -34,8 +34,9 @@ package:tarball:
           "pytest-cov"
           "mock ; python_version < '3'"
   script:
-    - py.test --pyargs gwdatafind --cov=gwdatafind
+    - python -m pytest --pyargs gwdatafind --cov-report= --cov=gwdatafind
     - coverage run -a -m gwdatafind --help
+    - coverage report
 
 test:python2.7:
   <<: *test
