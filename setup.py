@@ -51,7 +51,7 @@ install_requires = [
     'pyOpenSSL',
 ]
 tests_require = [
-    'pytest',
+    'pytest >= 2.4.0',
 ]
 if sys.version < '3.0':
     tests_require.append('mock')

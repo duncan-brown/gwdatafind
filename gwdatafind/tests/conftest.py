@@ -27,11 +27,16 @@ try:
 except ImportError:  # python2.x
     import mock
 
+if pytest.__version__ < '3.0':
+    yield_fixture = pytest.yield_fixture
+else:
+    yield_fixture = pytest.fixture
+
 HTTP_CLIENT = http_client.__name__
 HTTP_CONNECTION = '{0}.HTTPConnection'.format(HTTP_CLIENT)
 
 
-@pytest.fixture
+@yield_fixture
 def response():
     """Patch an HTTPConnection to do nothing in particular
 

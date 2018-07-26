@@ -21,8 +21,8 @@ Build-Depends: debhelper (>= 9),
                lal-python3,
                python-ligo-segments,
                python3-ligo-segments,
-               python-pytest,
-               python3-pytest
+               python-pytest (>= 2.4.0),
+               python3-pytest (>= 2.4.0)
 
 # -- python-gwdatafind --------------------------------------------------------
 

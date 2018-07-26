@@ -19,9 +19,9 @@ BuildRequires: python-rpm-macros
 BuildRequires: python-setuptools
 BuildRequires: python2-six
 BuildRequires: pyOpenSSL
-BuildRequires: lal-python
+BuildRequires: lal-python >= 6.18.0
 BuildRequires: python2-ligo-segments
-BuildRequires: python2-pytest
+BuildRequires: python2-pytest >= 2.4.0
 BuildRequires: python2-mock
 
 %description
