@@ -44,9 +44,8 @@ test:python3.6:
 
 # -- package ----------------
 
-package:el7:
+.package:el: &package-el
   <<: *build-artifact
-  image: ligo/base:el7
   before_script:
     - yum install -yq
           rpm-build
@@ -65,7 +64,7 @@ package:el7:
     - mv -v ~/rpmbuild/RPMS/*/python*-gwdatafind-*.rpm dist/
     - rm -rf dist/*.tar.gz
 
-.package:debian: &build_debian
+.package:debian: &package-debian
   <<: *build-artifact
   before_script:
     - apt-get update -yqq
@@ -99,10 +98,14 @@ package:el7:
     - popd
     - rm -rf dist/gwdatafind*
 
+package:el:7:
+  <<: *package-el
+  image: ligo/base:el7
+
 package:debian:jessie:
-  <<: *build-artifact_debian
+  <<: *package-debian
   image: ligo/base:jessie
 
 package:debian:stretch:
-  <<: *build-artifact_debian
+  <<: *package-debian
   image: ligo/base:stretch
