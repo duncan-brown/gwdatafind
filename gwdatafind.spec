@@ -19,7 +19,6 @@ BuildRequires: python-rpm-macros
 BuildRequires: python-setuptools
 #BuildRequires: python2-six
 #BuildRequires: pyOpenSSL
-#BuildRequires: lal-python >= 6.18.0
 #BuildRequires: python2-ligo-segments
 #BuildRequires: python2-pytest >= 2.8.0
 #BuildRequires: python2-mock
@@ -35,7 +34,6 @@ gravitational-wave detectors.
 Summary:  %{summary}
 Requires: python-six
 Requires: pyOpenSSL
-Requires: lal-python
 Requires: python2-ligo-segments
 %{?python_provide:%python_provide python2-%{name}}
 %description -n python2-%{name}

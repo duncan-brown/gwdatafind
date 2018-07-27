@@ -51,7 +51,7 @@ def teardown_module():
 ))
 def test_connect_http(conn, serv):
     ui.connect(host=serv)
-    conn.assert_called_once_with(host='test.datafind.com', port=None)
+    conn.assert_called_with(host='test.datafind.com', port=None)
 
 
 @mock.patch('ssl.create_default_context')
@@ -65,11 +65,9 @@ def test_connect_https(conn, cred, sslctx):
 
     ui.connect('test.datafind.com:443')
 
-    loadcert.load_cert_chain.assert_called_once_with('cert', 'key')
-    conn.assert_called_once_with(
-        host='test.datafind.com', port=443,
-        context=loadcert,
-    )
+    loadcert.load_cert_chain.assert_called_with('cert', 'key')
+    conn.assert_called_with(host='test.datafind.com', port=443,
+                            context=loadcert)
 
 
 @mock.patch('gwdatafind.ui.HTTPConnection', return_value=mock.MagicMock())
@@ -84,6 +82,6 @@ def test_connect_https(conn, cred, sslctx):
 ))
 def test_factory_method(conn, method):
     getattr(ui, method)()
-    getattr(conn.return_value, method).assert_called_once()
+    assert getattr(conn.return_value, method).call_count == 1
 
 

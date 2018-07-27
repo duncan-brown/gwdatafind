@@ -28,10 +28,11 @@ from json import loads
 
 from six.moves import http_client
 from six.moves.urllib.error import HTTPError
+from six.moves.urllib.parse import urlparse
 
 from ligo import segments
 
-from .utils import (get_default_host, as_cacheentry)
+from .utils import (get_default_host, file_segment)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __all__ = ['DEFAULT_SERVICE_PREFIX', 'HTTPConnection', 'HTTPSConnection']
@@ -107,6 +108,25 @@ class HTTPConnection(http_client.HTTPConnection):
         if isinstance(response, bytes):
             response = response.decode('utf-8')
         return loads(response)
+
+    def get_urls(self, url, scheme=None, on_missing='ignore', **kwargs):
+        """Perform a 'GET' request and return a list of URLs
+        """
+        urls = self.get_json(url, **kwargs)
+
+        # sieve for correct file scheme
+        if scheme:
+            urls = list(filter(lambda e: urlparse(e).scheme == scheme, urls))
+
+        # handle empty result
+        if not urls:
+            err = "no files found"
+            if on_missing == 'warn':
+                warnings.warn(err)
+            elif on_missing != 'ignore':
+                raise RuntimeError(err)
+
+        return urls
 
     # -- supported interactions -----------------
 
@@ -233,16 +253,6 @@ class HTTPConnection(http_client.HTTPConnection):
         segmentlist = self.get_json(url)
         return segments.segmentlist(map(segments.segment, segmentlist))
 
-    @staticmethod
-    def _handle_no_files(on_missing='error'):
-        if on_missing == 'ignore':
-            return
-        err = "no files found"
-        if on_missing == 'warn':
-            warnings.warn(err)
-        else:
-            raise RuntimeError(err)
-
     def find_url(self, framefile, urltype='file', on_missing="error"):
         """Query the LDR host for a single filename.
 
@@ -265,7 +275,7 @@ class HTTPConnection(http_client.HTTPConnection):
         Returns
         -------
         urls : `list` of `str`
-            a list of structure file paths for all instances of ``filename``.
+            a list of structured file paths for all instances of ``filename``.
         """
         framefile = os.path.basename(framefile)
 
@@ -276,17 +286,7 @@ class HTTPConnection(http_client.HTTPConnection):
         url = "{prefix}/gwf/{site}/{type}/{filename}.json".format(
             prefix=DEFAULT_SERVICE_PREFIX, site=site, type=frametype,
             filename=framefile)
-        urllist = self.get_json(url)
-
-        # handle missing response
-        if not urllist:
-            self._handle_no_files(on_missing)
-
-        # verify urltype is what we want
-        cache = list(map(as_cacheentry, urllist))
-        if urltype:
-            return list(filter(lambda e: e.scheme == urltype, cache))
-        return cache
+        return self.get_urls(url, scheme=urltype, on_missing=on_missing)
 
     def find_frame(self, *args, **kwargs):
         """DEPRECATED, use :meth:`~HTTPConnection.find_url` instead
@@ -319,8 +319,8 @@ class HTTPConnection(http_client.HTTPConnection):
 
         Returns
         -------
-        latest : `list` with single `~lal.utils.CacheEntry`
-            a cache containing the single latest file found
+        latest : `list` with one `str`
+            the URLs of the latest file found (all file types)
 
         Raises
         ------
@@ -331,15 +331,7 @@ class HTTPConnection(http_client.HTTPConnection):
             prefix=DEFAULT_SERVICE_PREFIX, site=site, type=frametype,
             urltype='/{0}'.format(urltype) if urltype else '',
         )
-
-        # make request
-        urllist = self.get_json(url)
-
-        # handle missing response
-        if not urllist:
-            self._handle_no_files(on_missing)
-
-        return list(map(as_cacheentry, urllist))
+        return self.get_urls(url, scheme=urltype, on_missing=on_missing)
 
     def find_urls(self, site, frametype, gpsstart, gpsend,
                   match=None, urltype='file', on_gaps="warn"):
@@ -373,7 +365,7 @@ class HTTPConnection(http_client.HTTPConnection):
 
         Returns
         -------
-        cache : `list` of `~lal.utils.CacheEntry`
+        cache : `list` of `str`
             the list of discovered file URLs
         """
         url = '{prefix}/gwf/{site}/{type}/{start},{end}{urltype}.json'.format(
@@ -387,25 +379,24 @@ class HTTPConnection(http_client.HTTPConnection):
             url += "?match={0}".format(match)
 
         # make query
-        urllist = self.get_json(url)
-        out = list(map(as_cacheentry, urllist))
+        urls = self.get_urls(url)
 
         # ignore missing data
         if on_gaps == "ignore":
-            return out
+            return urls
 
         # handle missing data
         span = segments.segment(gpsstart, gpsend)
-        seglist = segments.segmentlist(e.segment for e in out).coalesce()
+        seglist = segments.segmentlist(map(file_segment, urls)).coalesce()
         missing = (segments.segmentlist([span]) - seglist).coalesce()
         if not missing:  # no gaps
-            return out
+            return urls
 
         # warn or error on missing
         msg = "Missing segments: \n%s" % "\n".join(map(str, missing))
         if on_gaps == "warn":
             warnings.warn(msg)
-            return out
+            return urls
         raise RuntimeError(msg)
 
     def find_frame_urls(self, *args, **kwargs):
