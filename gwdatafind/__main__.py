@@ -398,7 +398,7 @@ def postprocess_cache(urls, args, out):
     in the requested format, then prints gaps to stderr if requested.
     """
     # if searching for SFTs replace '.gwf' file suffix with '.sft'
-    if re.search(r'_\d+SFT[_-]', str(args.type)):
+    if re.search(r'_\d+SFT(\Z|_)', str(args.type)):
         gwfreg = re.compile(r'\.gwf\Z')
         for i, url in enumerate(urls):
             urls[i] = gwfreg.sub('.sft', url)
@@ -465,5 +465,5 @@ def main(args=None):
     return show_urls(opts, out)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no-cover
     sys.exit(main())

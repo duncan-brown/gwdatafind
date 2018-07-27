@@ -90,10 +90,14 @@ def test_command_line():
     assert args.server == 'something'
 
 
-@pytest.mark.parametrize('defserv', ('', 'test.datafind.com:443'))
+@mock.patch.dict('os.environ')
+@pytest.mark.parametrize('defserv', (None, 'test.datafind.com:443'))
 def test_command_line_server(defserv):
-    with mock.patch.dict(os.environ, {'LIGO_DATAFIND_SERVER': defserv}):
-        parser = main.command_line()
+    if defserv:
+        os.environ['LIGO_DATAFIND_SERVER'] = defserv
+    else:
+        os.environ.pop('LIGO_DATAFIND_SERVER', None)
+    parser = main.command_line()
     serveract = [act for act in parser._actions if act.dest == 'server'][0]
     assert serveract.required is (not defserv)
 
@@ -273,6 +277,20 @@ def test_postprocess_cache_format(fmt, result):
     assert out.read() == result
 
 
+def test_postprocess_cache_sft():
+    args = argparse.Namespace(
+        type='TEST_1800SFT',
+        lal_cache=False,
+        names_only=False,
+        frame_cache=False,
+        gaps=None,
+    )
+    out = StringIO()
+    main.postprocess_cache(URLS, args, out)
+    out.seek(0)
+    assert out.read() == OUTPUT_URLS.replace('.gwf', '.sft')
+
+
 def test_postprocess_cache_gaps(capsys):
     args = argparse.Namespace(
         gpsstart=0,
@@ -290,18 +308,27 @@ def test_postprocess_cache_gaps(capsys):
     assert std.err == 'Missing segments:\n\n{0}\n'.format(
         '\n'.join('{0[0]:d} {0[1]:d}'.format(seg) for seg in GAPS))
 
+    args.gpsstart = 4
+    args.gpsend = 7
+    assert main.postprocess_cache(URLS, args, out) is 2
+
 
 @mock.patch.dict(os.environ, {'LIGO_DATAFIND_SERVER': 'something'})
 @pytest.mark.parametrize('args,patch', [
-    (('--ping',), 'ping'),
-    (('--show-observatories',), 'show_observatories'),
-    (('--show-types',), 'show_types'),
-    (('--show-times', '-o', 'X', '-t', 'test'), 'show_times'),
-    (('--latest', '-o', 'X', '-t', 'test'), 'latest'),
-    (('--filename', 'X-test-0-1.gwf'), 'filename'),
-    (('-o', 'X', '-t', 'test', '-s', '0', '-e', '10'), 'show_urls'),
+    (['--ping'], 'ping'),
+    (['--show-observatories'], 'show_observatories'),
+    (['--show-types'], 'show_types'),
+    (['--show-times', '-o', 'X', '-t', 'test'], 'show_times'),
+    (['--latest', '-o', 'X', '-t', 'test'], 'latest'),
+    (['--filename', 'X-test-0-1.gwf'], 'filename'),
+    (['-o', 'X', '-t', 'test', '-s', '0', '-e', '10'], 'show_urls'),
 ])
-def test_main(args, patch):
+def test_main(args, patch, tmpname):
+    with mock.patch('gwdatafind.__main__.{0}'.format(patch)) as mocked:
+        main.main(args)
+        assert mocked.call_count == 1
+    # call again with output file
+    args.extend(('--output-file', tmpname))
     with mock.patch('gwdatafind.__main__.{0}'.format(patch)) as mocked:
         main.main(args)
         assert mocked.call_count == 1
