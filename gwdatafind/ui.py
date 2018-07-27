@@ -39,7 +39,7 @@ def connect(host=None, port=None):
         context = ssl.create_default_context()
         context.load_cert_chain(cert, key)
         return HTTPSConnection(host=host, port=port, context=context)
-    return HTTPConnection(host=host)
+    return HTTPConnection(host=host, port=port)
 
 
 def _with_connection(func):
