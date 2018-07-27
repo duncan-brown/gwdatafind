@@ -304,4 +304,4 @@ def test_postprocess_cache_gaps(capsys):
 def test_main(args, patch):
     with mock.patch('gwdatafind.__main__.{0}'.format(patch)) as mocked:
         main.main(args)
-        mocked.assert_called_once()
+        assert mocked.call_count == 1
