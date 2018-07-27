@@ -61,6 +61,7 @@ doc:
   before_script:
     - python -m pip install sphinx
   script:
+    - python -m pip install .  # to get dependencies
     - python setup.py build_sphinx
   artifacts:
     paths:
