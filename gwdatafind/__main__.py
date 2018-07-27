@@ -22,17 +22,129 @@
 from __future__ import print_function
 
 import argparse
+import os.path
 import re
 import sys
-from operator import attrgetter
+from collections import namedtuple
+from operator import (attrgetter, methodcaller)
+
+from six.moves.urllib.parse import urlparse
 
 from ligo import segments
 
 from . import (__version__, ui)
-from .utils import (get_default_host, to_wcache)
+from .utils import (get_default_host, filename_metadata)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Scott Koranda, The LIGO Scientific Collaboration'
+
+
+# -- cache format utilities ---------------------------------------------------
+
+class _CacheEntry(namedtuple('CacheEntry', ('obs', 'tag', 'segment', 'url'))):
+    """Simplified version of `lal.utils.CacheEntry`
+
+    This is provided so that we don't have to depend on lalsuite.
+    """
+    def __str__(self):
+        seg = self.segment
+        return '{0} {1} {2} {3} {4}'.format(
+            self.obs, self.tag, seg[0], abs(seg), self.url)
+
+    @classmethod
+    def from_url(cls, url, **kwargs):
+        obs, tag, seg = filename_metadata(url)
+        return cls(obs, tag, seg, url)
+
+
+class _OmegaCacheEntry(namedtuple(
+        '_OmegaCacheEntry', ('obs', 'tag', 'segment', 'duration', 'url'))):
+    """CacheEntry for an omega-style cache.
+
+    Omega-style cache files contain one entry per contiguous directory of
+    the form:
+
+        <obs> <tag> <dir-start> <dir-end> <file-duration> <directory>
+    """
+    def __str__(self):
+        return '{0} {1} {2[0]} {2[1]} {3} {4}'.format(
+            self.obs, self.tag, self.segment, self.duration, self.url)
+
+
+def _to_wcache(cache):
+    """Convert a list of `_CacheEntry` into a list of `_OmegaCacheEntry`
+    """
+    wcache = []
+    duration = 0
+    for entry in sorted(
+            cache, key=attrgetter('obs', 'tag', 'segment')):
+        dir_ = os.path.dirname(entry.url)
+        # if this file has the same attributes, goes into the same directory,
+        # has the same duration, and overlaps with or is contiguous with
+        # the last file, just add its segment to the last one:
+        if wcache and (
+                entry.obs == wentry.obs and
+                entry.tag == wentry.tag and
+                dir_ == wentry.url and
+                abs(entry.segment) == wentry.duration and
+                (entry.segment.connects(wentry.segment) or
+                 entry.segment.intersects(wentry.segment))
+        ):
+            wcache[-1] = wentry = _OmegaCacheEntry(
+                wentry.obs, wentry.tag, wentry.segment | entry.segment,
+                wentry.duration, wentry.url)
+        # otherwise create a new entry in the omega wcache
+        else:
+            wentry = _OmegaCacheEntry(entry.obs, entry.tag, entry.segment,
+                                      abs(entry.segment), dir_)
+            wcache.append(wentry)
+    return wcache
+
+
+# -- command line parsing -----------------------------------------------------
+
+
+class DataFindArgumentParser(argparse.ArgumentParser):
+    def __init__(self, *args, **kwargs):
+        super(DataFindArgumentParser, self).__init__(*args, **kwargs)
+        self._optionals.title = "Optional arguments"
+
+    def parse_args(self, *args, **kwargs):
+        args = super(DataFindArgumentParser, self).parse_args(*args, **kwargs)
+        args.show_urls = not any((args.ping, args.show_observatories,
+                                  args.show_types, args.show_times,
+                                  args.filename, args.latest))
+        self.sanity_check(args)
+        return args
+
+    def sanity_check(self, namespace):
+        """Sanity check parsed command line options
+
+        If any problems are found `argparse.ArgumentParser.error` is called,
+        which in turn calls :func:`sys.exit`.
+
+        Parameters
+        ----------
+        namespace : `argparse.Namespace`
+            the output of the command-line parsing
+        """
+        if namespace.show_times and (
+                not namespace.observatory or
+                not namespace.type
+        ):
+            self.error("--observatory and --type must be given when using "
+                         "--show-times.")
+        if namespace.show_urls and not all(x is not None for x in (
+                namespace.observatory,
+                namespace.type,
+                namespace.gpsstart,
+                namespace.gpsend,
+        )):
+            self.error("--observatory, --type, --gps-start-time, and "
+                       "--gps-end-time time all must be given when querying "
+                       "for file URLs")
+        if namespace.gaps and not namespace.show_urls:
+            self.error('-g/--gaps only allowed when querying for file URLs')
 
 
 def command_line():
@@ -43,12 +155,7 @@ def command_line():
     except ValueError:
         defhost = None
 
-    parser = argparse.ArgumentParser(description=__doc__)
-
-    try:  # try and use leading upper case, but don't fail if API changes
-        parser._optionals.title = "Optional arguments"
-    except AttributeError:
-        pass
+    parser = DataFindArgumentParser(description=__doc__)
 
     parser.add_argument('-V', '--version', action='version',
                         version=__version__,
@@ -90,9 +197,8 @@ def command_line():
 
     sargs = parser.add_argument_group(
         'Connection options', 'Authentication and connection options.')
-    sargs.add_argument('-r', '--server', action='store', type=str,
-                       metavar='HOST:PORT', default=defhost,
-                       required=defhost is None,
+    sargs.add_argument('-r', '--server', metavar='HOST:PORT', default=defhost,
+                       required=not defhost,
                        help='hostname and optional port of server to query '
                             '(default: %(default)s)')
     sargs.add_argument('-P', '--no-proxy', action='store_true',
@@ -129,31 +235,7 @@ def command_line():
     return parser
 
 
-def check_options(parser, args):
-    """Sanity check parsed command line options
-
-    If any problems are found `argparse.ArgumentParser.error` is called,
-    which in turn calls :func:`sys.exit`.
-
-    Parameters
-    ----------
-    parser : `argparse.ArgumentParser`
-        the parser used to read the arguments
-
-    args : `argparse.Namespace`
-        the output of the command-line parsing
-    """
-    if args.show_times and (not args.observatory or not args.type):
-        parser.error("--observatory and --type must be given when using "
-                     "--show-times.")
-    if args.show_urls and not all((args.observatory, args.type,
-                                   args.gpsstart, args.gpsend)):
-        parser.error("--observatory, --type, --gps-start-time, and "
-                     "--gps-end-time time all must be given when querying for "
-                     "file URLs")
-    if args.gaps and not args.show_urls:
-        parser.error('-g/--gaps only allowed when querying for file URLs')
-
+# -- actions ------------------------------------------------------------------
 
 def ping(args, out):
     """Worker for the --ping option.
@@ -309,29 +391,29 @@ def show_urls(args, out):
     return postprocess_cache(cache, args, out)
 
 
-def postprocess_cache(cache, args, out):
+def postprocess_cache(urls, args, out):
     """Post-process a cache produced from a DataFind query
 
     This function checks for gaps in the file coverage, prints the cache
     in the requested format, then prints gaps to stderr if requested.
     """
     # if searching for SFTs replace '.gwf' file suffix with '.sft'
-    if args.type is not None and 'SFT' in args.type:
-        for idx in range(len(cache)):
-            cache[idx].path = re.sub('.gwf', '.sft', cache[idx].path)
+    if re.search(r'_\d+SFT[_-]', str(args.type)):
+        gwfreg = re.compile(r'\.gwf\Z')
+        for i, url in enumerate(urls):
+            urls[i] = gwfreg.sub('.sft', url)
+
+    cache = list(map(_CacheEntry.from_url, urls))
 
     # determine output format for a given URL
     if args.lal_cache:
         fmt = str
     elif args.names_only:
-        fmt = attrgetter('path')
+        def fmt(url):
+            return urlparse(url.url).path
     elif args.frame_cache:
-        cache = to_wcache(cache)
-
-        def fmt(entry):
-            return ('{e.observatory} {e.description} {e.segment[0]} '
-                    '{e.segment[1]} {duration} {e.path}'.format(
-                        e=entry, duration=abs(entry.segment)))
+        cache = _to_wcache(cache)
+        fmt = str
     else:
         fmt = attrgetter('url')
 
@@ -346,11 +428,13 @@ def postprocess_cache(cache, args, out):
         if missing:
             print("Missing segments:\n", file=sys.stderr)
             for seg in missing:
-                print("%f %f" % tuple(seg), file=sys.stderr)
+                print("%d %d" % tuple(seg), file=sys.stderr)
             if span in missing:
                 return 2
             return 1
 
+
+# -- CLI ----------------------------------------------------------------------
 
 def main(args=None):
     """Run the thing
@@ -358,10 +442,6 @@ def main(args=None):
     # parse command line
     parser = command_line()
     opts = parser.parse_args(args=args)
-    opts.show_urls = not any((opts.ping, opts.show_observatories,
-                              opts.show_types, opts.show_times,
-                              opts.filename, opts.latest))
-    check_options(parser, opts)
 
     # open output
     if opts.output_file:

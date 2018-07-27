@@ -17,8 +17,6 @@ Build-Depends: debhelper (>= 9),
                python3-six,
                python-openssl,
                python3-openssl,
-               lal-python,
-               lal-python3,
                python-ligo-segments,
                python3-ligo-segments,
                python-pytest (>= 2.8.0),
@@ -31,7 +29,6 @@ Architecture: all
 Depends: ${misc:Depends},
          ${python:Depends},
          python-six (>= 1.9.0),
-         python-lal (>= 6.19.0),
          python-ligo-segments
 Description: The client library for the LIGO Data Replicator (LDR) service
  .
@@ -47,7 +44,6 @@ Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
          python3-six (>= 1.9.0),
-         python3-lal (>= 6.19.0),
          python3-ligo-segments
 Description: The client library for the LIGO Data Replicator (LDR) service
  .

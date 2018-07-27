@@ -25,8 +25,7 @@ from operator import attrgetter
 
 from OpenSSL import crypto
 
-from lal import LIGOTimeGPS
-from lal.utils import CacheEntry
+from ligo.segments import segment
 
 DEFAULT_SERVER = os.getenv('LIGO_DATAFIND_SERVER')
 
@@ -113,34 +112,42 @@ def find_credential():
     raise RuntimeError(rfc_proxy_msg)
 
 
-def as_cacheentry(url, coltype=LIGOTimeGPS):
-    return CacheEntry.from_T050017(url, coltype=coltype)
+# -- LIGO-T050017 filename parsing --------------------------------------------
 
+def filename_metadata(filename):
+    """Return metadata parsed from a filename following LIGO-T050017
 
-def to_wcache(cache):
-    """Convert a LAL-format `~glue.lal.Cache` into an omega format cache
+    Parameters
+    ---------
+    filename : `str`
+        the path name of a file
+
+    Returns
+    -------
+    obs : `str`
+        the observatory metadata
+    tag : `str`
+        the file tag
+    segment : `ligo.segments.segment`
+        the GPS ``[start, stop)`` interval for this file
     """
-    wcache = []
-    duration = 0
-    for entry in sorted(
-            cache, key=attrgetter('observatory', 'description', 'segment')):
-        dir_ = os.path.dirname(entry.path)
-        # if this file has the same attributes, goes into the same directory,
-        # has the same duration, and overlaps with or is contiguous with
-        # the last file, just add its segment to the last one:
-        if duration and (
-                entry.observatory == wentry.observatory and
-                entry.description == wentry.description and
-                dir_ == wentry.path and
-                abs(entry.segment) == duration and
-                (entry.segment.connects(wentry.segment) or
-                 entry.segment.intersects(wentry.segment))
-        ):
-            wentry.segment |= entry.segment
-        # otherwise create a new entry in the omega wcache
-        else:
-            wentry = CacheEntry(entry.observatory, entry.description,
-                                entry.segment, dir_)
-            wcache.append(wentry)
-            duration = abs(entry.segment)
-    return wcache
+    obs, desc, start, end = os.path.basename(filename).split('-')
+    start = int(start)
+    end = int(end.split('.')[0])
+    return obs, desc, segment(start, start+end)
+
+
+def file_segment(filename):
+    """Return the data segment for a filename following LIGO-T050017.
+
+    Parameters
+    ---------
+    filename : `str`, :class:`~lal.utils.CacheEntry`
+        the path name of a file
+
+    Returns
+    -------
+    segment : `~gwpy.segments.Segment`
+        the ``[start, stop)`` GPS segment covered by the given file
+    """
+    return filename_metadata(filename)[2]

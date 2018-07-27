@@ -47,7 +47,6 @@ else:
 install_requires = [
     'six',
     'ligo-segments',
-    'lalsuite',
     'pyOpenSSL',
 ]
 tests_require = [

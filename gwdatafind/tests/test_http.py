@@ -35,8 +35,6 @@ import pytest
 
 from ligo.segments import (segment, segmentlist)
 
-from lal.utils import CacheEntry
-
 from .. import utils
 from ..http import (
     HTTPConnection,
@@ -133,9 +131,10 @@ class TestHTTPConnection(object):
             times = connection.find_times('X', 'test', gpsend=10)
 
     def test_find_url(self, response, connection):
-        response.return_value = fake_response(['file:///tmp/X-test-0-10.gwf'])
+        out = ['file:///tmp/X-test-0-10.gwf']
+        response.return_value = fake_response(out)
         url = connection.find_url('X-test-0-10.gwf')
-        assert url == [CacheEntry.from_T050017('/tmp/X-test-0-10.gwf')]
+        assert url == out
 
         response.return_value = fake_response([])
         with pytest.raises(RuntimeError):
@@ -149,15 +148,17 @@ class TestHTTPConnection(object):
         assert not wrngs.list
 
     def test_find_frame(self, response, connection):
-        response.return_value = fake_response(['file:///tmp/X-test-0-10.gwf'])
+        out = ['file:///tmp/X-test-0-10.gwf']
+        response.return_value = fake_response(out)
         with pytest.warns(DeprecationWarning):
             url = connection.find_frame('X-test-0-10.gwf')
-        assert url == [CacheEntry.from_T050017('/tmp/X-test-0-10.gwf')]
+        assert url == out
 
     def test_find_latest(self, response, connection):
-        response.return_value = fake_response(['file:///tmp/X-test-0-10.gwf'])
+        out = ['file:///tmp/X-test-0-10.gwf']
+        response.return_value = fake_response(out)
         url = connection.find_latest('X', 'test')
-        assert url == [CacheEntry.from_T050017('/tmp/X-test-0-10.gwf')]
+        assert url == out
 
         response.return_value = fake_response([])
         with pytest.raises(RuntimeError):
@@ -171,13 +172,12 @@ class TestHTTPConnection(object):
         assert not wrngs.list
 
     def test_find_urls(self, response, connection):
-        files =  list(map(CacheEntry.from_T050017, [
+        files =  [
             'file:///tmp/X-test-0-10.gwf',
             'file:///tmp/X-test-10-10.gwf',
             'file:///tmp/X-test-20-10.gwf',
-        ]))
-        response.return_value = fake_response(
-            list(map(attrgetter('url'), files)))
+        ]
+        response.return_value = fake_response(files)
         urls = connection.find_urls('X', 'test', 0, 30, match='anything')
         assert urls == files
 
@@ -193,13 +193,12 @@ class TestHTTPConnection(object):
         assert not wrngs.list
 
     def test_find_frame_urls(self, response, connection):
-        files =  list(map(CacheEntry.from_T050017, [
+        files =  [
             'file:///tmp/X-test-0-10.gwf',
             'file:///tmp/X-test-10-10.gwf',
             'file:///tmp/X-test-20-10.gwf',
-        ]))
-        response.return_value = fake_response(
-            list(map(attrgetter('url'), files)))
+        ]
+        response.return_value = fake_response(files)
         with pytest.warns(DeprecationWarning):
             urls = connection.find_frame_urls('X', 'test', 0, 30)
         assert urls == files
