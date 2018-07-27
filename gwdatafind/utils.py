@@ -54,16 +54,11 @@ def validate_proxy(path):
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, f.read())
 
     # try and read proxyCertInfo
-    rfc3820 = False
     for i in range(cert.get_extension_count()):
         if cert.get_extension(i).get_short_name() == 'proxyCertInfo':
-            rfc3820 = True
             break
-
-    # otherwise test common name
-    if not rfc3820:
-        subject = cert.get_subject()
-        if subject.CN.startswith('proxy'):
+    else:  # not rfc3820
+        if cert.get_subject().CN.startswith('proxy'):
             raise RuntimeError('Could not find a valid proxy credential')
 
     # check time remaining

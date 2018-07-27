@@ -18,9 +18,12 @@
 """Test utilities
 """
 
-import pytest
+import os
+import tempfile
 
 from six.moves import http_client
+
+import pytest
 
 try:
     from unittest import mock
@@ -45,3 +48,16 @@ def response():
     with mock.patch('{0}.request'.format(HTTP_CONNECTION)), \
          mock.patch('{0}.getresponse'.format(HTTP_CONNECTION)) as resp:
         yield resp
+
+
+@yield_fixture
+def tmpname():
+    """Return a temporary file name, cleaning up after the method returns
+    """
+    name = tempfile.mktemp()
+    open(name, 'w').close()
+    try:
+        yield name
+    finally:
+        if os.path.isfile(name):
+            os.remove(name)
