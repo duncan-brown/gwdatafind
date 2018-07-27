@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - package
+  - deploy
 
 .dist: &build-artifact
   stage: package
@@ -53,6 +54,17 @@ test:python3.6:
 test:python3.7:
   <<: *test
   image: python:3.7
+
+doc:
+  stage: test
+  image: python:3.6
+  before_script:
+    - python -m pip install sphinx
+  script:
+    - python setup.py build_sphinx
+  artifacts:
+    paths:
+      - build/sphinx/html
 
 # -- package ----------------
 
@@ -121,3 +133,15 @@ package:debian:jessie:
 package:debian:stretch:
   <<: *package-debian
   image: ligo/base:stretch
+
+# -- deploy -----------------
+
+pages:
+  stage: deploy
+  script:
+    - mv build/sphinx/html public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

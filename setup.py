@@ -26,6 +26,8 @@ import sys
 
 from setuptools import (setup, find_packages)
 
+cmdclass = dict()
+
 
 def find_version(path):
     """Parse the __version__ metadata in the given file.
@@ -40,10 +42,19 @@ def find_version(path):
 
 # -- dependencies -------------------------------
 
+setup_requires = []
 if {'test'}.intersection(sys.argv):
-    setup_requires = ['pytest_runner']
-else:
-    setup_requires = []
+    setup_requires.append('pytest_runner')
+if {'build_sphinx'}.intersection(sys.argv):
+    setup_requires.extend((
+        'sphinx',
+        'sphinx_rtd_theme',
+        'numpydoc',
+        'sphinx_automodapi',
+    ))
+    from sphinx.setup_command import BuildDoc
+    cmdclass['build_sphinx'] = BuildDoc
+
 install_requires = [
     'six',
     'ligo-segments',
@@ -71,6 +82,7 @@ setup(
     author_email='duncan.macleod@ligo.org',
     url='https://github.com/gwpy/gwdatafind',
     license='GPLv3',
+    cmdclass={},
     setup_requires=setup_requires,
     install_requires=install_requires,
     tests_require=tests_require,

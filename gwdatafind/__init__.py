@@ -22,28 +22,19 @@ The DataFind service allows users to query for the location of
 Gravitational-Wave Frame (GWF) files containing data from the current
 gravitational-wave detectors.
 
-This package provides the `~HTTPConnection` and `~HTTPSConnection` class
-objbectes, for connecting to an LDR server in open and authenticated
-access modes respectively.
-The authenticated `~HTTPSConnection` requires users have a valid X509
+This package provides the :class:`~HTTPConnection` and
+:class:`~HTTPSConnection` class objeces, for connecting to an LDR server
+in open and authenticated access modes respectively.
+The authenticated :class:`~HTTPSConnection` requires users have a valid X509
 certificate that is registered with the server in question.
+
+-----------
+Quick-start
+-----------
+
 A high-level :meth:`connect` function is provided that will automatically
 select the correct protocal based on the host given, and will attempt to
-access any required X509 credentials:
-
-.. autofunction:: gwdatafind.connect
-
-In addition, the following convenience methods are provided
-
-.. autosummary::
-
-   ping
-   find_observatories
-   find_types
-   find_times
-   find_latest
-   find_url
-   find_urls
+access any required X509 credentials.
 """
 
 from .http import *
