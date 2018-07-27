@@ -25,6 +25,27 @@ __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 
 
 def connect(host=None, port=None):
+    """Open a new connection to a Datafind server
+
+    This method will auto-select between HTTP and HTTPS based on port,
+    and (for HTTPS) will automatically load the necessary X509 credentials
+    using :func:`gwdatafind.utils.find_credential`.
+
+    Parameters
+    ----------
+    host : `str`, optional
+        the name of the datafind server to connect to; if not given will be
+        taken from the ``LIGO_DATAFIND_SERVER`` environment variable.
+
+    port : `int`, optional
+        the port on the server to use, if not given it will be stripped from
+        the ``host`` name.
+
+    Returns
+    -------
+    connection : `gwdatafind.HTTPConnection` or `gwdatafind.HTTPSConnection`
+        a newly opened connection
+    """
     if host is None:
         host = get_default_host()
     if port is None:
