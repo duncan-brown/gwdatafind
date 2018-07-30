@@ -134,15 +134,3 @@ package:debian:jessie:
 package:debian:stretch:
   <<: *package-debian
   image: ligo/base:stretch
-
-# -- deploy -----------------
-
-pages:
-  stage: deploy
-  script:
-    - mv build/sphinx/html public
-  artifacts:
-    paths:
-      - public
-  only:
-    - master
