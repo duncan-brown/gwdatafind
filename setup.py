@@ -49,6 +49,7 @@ if {'build_sphinx'}.intersection(sys.argv):
     setup_requires.extend((
         'sphinx',
         'sphinx_rtd_theme',
+        'sphinx_tabs',
         'numpydoc',
         'sphinx_automodapi',
     ))
@@ -80,7 +81,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Duncan Macleod',
     author_email='duncan.macleod@ligo.org',
-    url='https://github.com/gwpy/gwdatafind',
+    url='https://duncanmmacleod.docs.ligo.org/gwdatafind/',
     license='GPLv3',
     cmdclass={},
     setup_requires=setup_requires,

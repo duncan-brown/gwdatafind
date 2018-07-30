@@ -11,6 +11,7 @@ from ligo.segments import __version__ as VERSION
 extensions = [
     'sphinx.ext.intersphinx',
     'sphinx_automodapi.automodapi',
+    'sphinx_tabs.tabs',
     'numpydoc',
 ]
 
