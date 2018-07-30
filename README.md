@@ -6,8 +6,8 @@ The DataFind service allows users to query for the location of
 Gravitational-Wave Frame (GWF) files containing data from the current
 gravitational-wave detectors.
 
-[![pipeline status](https://git.ligo.org/duncanmmacleod/gwdatafind/badges/master/pipeline.svg)](https://git.ligo.org/duncanmmacleod/gwdatafind/commits/master)
-[![coverage report](https://git.ligo.org/duncanmmacleod/gwdatafind/badges/master/coverage.svg)](https://git.ligo.org/duncanmmacleod/gwdatafind/commits/master)
+[![pipeline status](https://git.ligo.org/lscsoft/gwdatafind/badges/master/pipeline.svg)](https://git.ligo.org/lscsoft/gwdatafind/commits/master)
+[![coverage report](https://git.ligo.org/lscsoft/gwdatafind/badges/master/coverage.svg)](https://git.ligo.org/lscsoft/gwdatafind/commits/master)
 
 ## Installation
 
@@ -50,4 +50,4 @@ run
 $ python -m gwdatafind --help
 ```
 
-For more documentation, see https://duncanmmacleod.docs.ligo.org/gwdatafind/.
+For more documentation, see https://lscsoft.docs.ligo.org/gwdatafind/.

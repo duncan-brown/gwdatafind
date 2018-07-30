@@ -81,7 +81,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Duncan Macleod',
     author_email='duncan.macleod@ligo.org',
-    url='https://duncanmmacleod.docs.ligo.org/gwdatafind/',
+    url='https://lscsoft.docs.ligo.org/gwdatafind/',
     license='GPLv3',
     cmdclass={},
     setup_requires=setup_requires,
