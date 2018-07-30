@@ -46,13 +46,13 @@ class HTTPConnection(http_client.HTTPConnection):
     Parameters
     ----------
     host : `str`
-        the name of the server with which to connect
+        the name of the server with which to connect.
 
     port : `int`, optional
-        the port on which to connect
+        the port on which to connect.
 
     **kwargs
-        other keywords are passed directly to `http.client.HTTPConnect`
+        other keywords are passed directly to `http.client.HTTPConnection`
     """
     def __init__(self, host=None, port=None,
                  timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
@@ -69,10 +69,10 @@ class HTTPConnection(http_client.HTTPConnection):
         Parameters
         ----------
         method : `str`
-            name of the method to use (e.g. 'GET')
+            name of the method to use (e.g. ``'GET'``).
 
         url : `str`
-            remote URL to query
+            remote URL to query.
 
         Returns
         -------
@@ -99,6 +99,10 @@ class HTTPConnection(http_client.HTTPConnection):
         url : `str`
             remote URL to query
 
+        **kwargs
+            other keyword arguments are passed to
+            :meth:`HTTPConnection._requestresponse`
+
         Returns
         -------
         data : `object`
@@ -110,7 +114,31 @@ class HTTPConnection(http_client.HTTPConnection):
         return loads(response)
 
     def get_urls(self, url, scheme=None, on_missing='ignore', **kwargs):
-        """Perform a 'GET' request and return a list of URLs
+        """Perform a 'GET' request and return a list of URLs.
+
+        Parameters
+        ----------
+        url : `str`
+            remote URL to query
+
+        scheme : `str`, `None`, optional
+            the URL scheme to match, default: `None`
+
+        on_missing : `str`, optional
+            how to handle an empty (but successful) response, one of
+
+            - ``'ignore'``: do nothing, return empty `list`
+            - ``'warn'``: print warning, return empty `list`
+            - ``'raise'``: raise `RuntimeError`
+
+        **kwargs
+            other keyword arguments are passed to
+            :meth:`HTTPConnection.get_json`
+
+        Returns
+        -------
+        urls : `list` of `str`
+            a list of file paths as returned from the server.
         """
         urls = self.get_json(url, **kwargs)
 
@@ -131,7 +159,7 @@ class HTTPConnection(http_client.HTTPConnection):
     # -- supported interactions -----------------
 
     def ping(self):
-        """Ping the LDR host to test for life
+        """Ping the LDR host to test for life.
 
         Raises
         ------
@@ -266,7 +294,7 @@ class HTTPConnection(http_client.HTTPConnection):
             `None`, default: 'file'
 
         on_missing : `str`
-            what to do when the requested frame isn't found, one of:
+            what to do when the requested file isn't found, one of:
 
             - ``'warn'``: print a warning (default),
             - ``'error'``: raise a `RuntimeError`, or
@@ -289,7 +317,7 @@ class HTTPConnection(http_client.HTTPConnection):
         return self.get_urls(url, scheme=urltype, on_missing=on_missing)
 
     def find_frame(self, *args, **kwargs):
-        """DEPRECATED, use :meth:`~HTTPConnection.find_url` instead
+        """DEPRECATED, use :meth:`~HTTPConnection.find_url` instead.
         """
         warnings.warn('find_frame() was renamed find_url()',
                       DeprecationWarning)
@@ -400,7 +428,7 @@ class HTTPConnection(http_client.HTTPConnection):
         raise RuntimeError(msg)
 
     def find_frame_urls(self, *args, **kwargs):
-        """DEPRECATED, use :meth:`~HTTPConnection.find_urls` instead
+        """DEPRECATED, use :meth:`~HTTPConnection.find_urls` instead.
         """
         warnings.warn('find_frame_urls() was renamed find_urls()',
                       DeprecationWarning)
@@ -408,18 +436,20 @@ class HTTPConnection(http_client.HTTPConnection):
 
 
 class HTTPSConnection(http_client.HTTPSConnection, HTTPConnection):
-    """Connect to a GWDataFind host using HTTP.
+    """Connect to a GWDataFind host using HTTPS.
+
+    This requires a valid X509 credential registered with the remote host.
 
     Parameters
     ----------
     host : `str`
-        the name of the server with which to connect
+        the name of the server with which to connect.
 
     port : `int`, optional
-        the port on which to connect
+        the port on which to connect.
 
     **kwargs
-        other keywords are passed directly to `http.client.HTTPConnect`
+        other keywords are passed directly to `http.client.HTTPSConnection`
     """
     def __init__(self, host=None, port=None, **kwargs):
         """Create a new connection.
