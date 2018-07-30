@@ -84,7 +84,7 @@ def find_credential():
     @raises RuntimeError: if the cert and key files cannot be located
     """
 
-    rfc_proxy_msg = ("Could not find a RFC 3820 compliant proxy credential."
+    rfc_proxy_msg = ("Could not find a RFC 3820 compliant proxy credential. "
                      "Please run 'grid-proxy-init -rfc' and try again.")
 
     # use X509_USER_PROXY from environment if set
