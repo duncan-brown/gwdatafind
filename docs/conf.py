@@ -49,6 +49,7 @@ intersphinx_mapping = {
 default_role = 'obj'
 
 # Don't inherit in automodapi
+numpydoc_show_class_members = False
 automodapi_inherited_members = False
 
 # -- Options for HTML output ----------------------------------------------
