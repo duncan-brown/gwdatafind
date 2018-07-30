@@ -63,7 +63,7 @@ class HTTPConnection(http_client.HTTPConnection):
         http_client.HTTPConnection.__init__(self, host, port,
                                             timeout, source_address)
 
-    def _requestresponse(self, method, url, body=None, headers={}):
+    def _request_response(self, method, url, **kwargs):
         """Internal method to perform request and verify reponse.
 
         Parameters
@@ -73,6 +73,10 @@ class HTTPConnection(http_client.HTTPConnection):
 
         url : `str`
             remote URL to query.
+
+        **kwargs
+            other keyword arguments are passed to
+            :meth:`http.client.HTTPConnection.request`.
 
         Returns
         -------
@@ -84,7 +88,7 @@ class HTTPConnection(http_client.HTTPConnection):
         RuntimeError
             if query is unsuccessful
         """
-        self.request(method, url)
+        self.request(method, url, **kwargs)
         response = self.getresponse()
         if response.status != 200:
             raise HTTPError(url, response.status, response.reason,
@@ -101,14 +105,14 @@ class HTTPConnection(http_client.HTTPConnection):
 
         **kwargs
             other keyword arguments are passed to
-            :meth:`HTTPConnection._requestresponse`
+            :meth:`HTTPConnection._request_response`
 
         Returns
         -------
         data : `object`
             JSON decoded using :func:`json.loads`
         """
-        response = self._requestresponse('GET', url, **kwargs).read()
+        response = self._request_response('GET', url, **kwargs).read()
         if isinstance(response, bytes):
             response = response.decode('utf-8')
         return loads(response)
@@ -167,7 +171,7 @@ class HTTPConnection(http_client.HTTPConnection):
             if the ping fails
         """
         url = '{prefix}/gwf/H/R/1,2'.format(prefix=DEFAULT_SERVICE_PREFIX)
-        self._requestresponse("HEAD", url)
+        self._request_response("HEAD", url)
         return 0
 
     def find_observatories(self, match=None):
