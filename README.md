@@ -9,7 +9,6 @@ gravitational-wave detectors.
 [![pipeline status](https://git.ligo.org/duncanmmacleod/gwdatafind/badges/master/pipeline.svg)](https://git.ligo.org/duncanmmacleod/gwdatafind/commits/master)
 [![coverage report](https://git.ligo.org/duncanmmacleod/gwdatafind/badges/master/coverage.svg)](https://git.ligo.org/duncanmmacleod/gwdatafind/commits/master)
 
-<!---
 ## Installation
 
 The simplest installation is via `pip`:
@@ -23,7 +22,6 @@ This package is also available as a Conda package:
 ```bash
 conda install -c conda-forge gwdatafind
 ```
--->
 
 ## Basic Usage
 
@@ -52,6 +50,4 @@ run
 $ python -m gwdatafind --help
 ```
 
-<!---
-For other documentation, see https://gwdatafind.readthedocs.io.
--->
+For more documentation, see https://duncanmmacleod.docs.ligo.org/gwdatafind/.
