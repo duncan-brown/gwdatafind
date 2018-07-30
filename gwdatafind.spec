@@ -61,7 +61,6 @@ rm -rf $RPM_BUILD_ROOT
 %files -n python2-%{name}
 %license LICENSE
 %doc README.md
-%{_bindir}/gw_data_find
 %{python2_sitelib}/*
 
 # -- changelog

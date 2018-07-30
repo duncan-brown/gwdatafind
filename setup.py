@@ -86,9 +86,9 @@ setup(
     setup_requires=setup_requires,
     install_requires=install_requires,
     tests_require=tests_require,
-    entry_points={'console_scripts': [
-        'gw_data_find=gwdatafind.__main__:main',
-    ]},
+    #entry_points={'console_scripts': [             X Can't include this block
+    #    'gw_data_find=gwdatafind.__main__:main',   X until gw_data_find isn't
+    #]},                                            X also provided by glue
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',

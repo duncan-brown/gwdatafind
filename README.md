@@ -43,6 +43,15 @@ This can be shortened for single interactions to
 >>> find_urls('H', 'H1_R', 1198800018, 1198800618)
 ```
 
+## On the command-line
+
+GWDataFind can also be executed via the command-line client, for full details
+run
+
+```bash
+$ python -m gwdatafind --help
+```
+
 <!---
 For other documentation, see https://gwdatafind.readthedocs.io.
 -->
