@@ -66,5 +66,5 @@ rm -rf $RPM_BUILD_ROOT
 # -- changelog
 
 %changelog
-* Thu Jul 26 2018 Duncan Macleod <duncan.macleod@ligo.org>
+* Mon Jul 30 2018 Duncan Macleod <duncan.macleod@ligo.org>
 - 1.0.0 first build
