@@ -81,3 +81,13 @@ Similar top-level functions exist for
 :func:`~gwdatafind.find_url`,
 :func:`~gwdatafind.find_latest`, and
 :func:`~gwdatafind.find_urls`
+
+==================
+Command-line usage
+==================
+
+The `lscsoft-glue <https://pypi.org/project/lscsoft-glue/>`__ package provides the
+``gw_data_find`` script, used to perform queries from the command-line.
+`gwdatafind` provides an identical interface via Python module execution (`python -m`).
+
+To migrate, replace ``gw_data_find`` with ``python -m gwdatafind``.
