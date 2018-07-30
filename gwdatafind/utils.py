@@ -27,10 +27,20 @@ from OpenSSL import crypto
 
 from ligo.segments import segment
 
-DEFAULT_SERVER = os.getenv('LIGO_DATAFIND_SERVER')
-
 
 def get_default_host():
+    """Returns the default host as stored in the ``${LIGO_DATAFIND_SERVER}``
+
+    Returns
+    -------
+    host : `str`
+        the URL of the default host
+
+    Raises
+    ------
+    ValueError
+        if the ``LIGO_DATAFIND_SERVER`` environment variable is not set
+    """
     try:
         return os.environ['LIGO_DATAFIND_SERVER']
     except KeyError:
@@ -40,13 +50,26 @@ def get_default_host():
 
 
 def validate_proxy(path):
-    """Validate the users X509 proxy certificate
+    """Validate an X509 proxy certificate file.
 
-    Tests that the proxy certificate is RFC 3820 compliant and that it
-    is valid for at least the next 15 minutes.
+    This function tests that the proxy certificate is
+    `RFC 3820 <https://www.ietf.org/rfc/rfc3820.txt>` compliant and is
+    not expired.
 
-    @returns: L{True} if the certificate validates
-    @raises RuntimeError: if the certificate cannot be validated
+    Parameters
+    ----------
+    path : `str`
+        the path of the X509 file on disk.
+
+    Returns
+    -------
+    valid : `True`
+        if the certificate valides.
+
+    Raises
+    ------
+    RuntimeError
+        if the certificate cannot be validated.
     """
     # load the proxy from path
     with open(path, 'rt') as f:
@@ -118,7 +141,7 @@ def filename_metadata(filename):
     """Return metadata parsed from a filename following LIGO-T050017
 
     Parameters
-    ---------
+    ----------
     filename : `str`
         the path name of a file
 
@@ -126,10 +149,18 @@ def filename_metadata(filename):
     -------
     obs : `str`
         the observatory metadata
+
     tag : `str`
         the file tag
+
     segment : `ligo.segments.segment`
         the GPS ``[start, stop)`` interval for this file
+
+    Notes
+    -----
+    `LIGO-T050017 <https://dcc.ligo.org/LIGO-T050017>`__ declares a
+    file naming convention that includes documenting the GPS start integer
+    and integer duration of a file, see that document for more details.
     """
     obs, desc, start, end = os.path.basename(filename).split('-')
     start = int(start)
@@ -141,13 +172,13 @@ def file_segment(filename):
     """Return the data segment for a filename following LIGO-T050017.
 
     Parameters
-    ---------
-    filename : `str`, :class:`~lal.utils.CacheEntry`
-        the path name of a file
+    ----------
+    filename : `str`
+        the path of a file.
 
     Returns
     -------
-    segment : `~gwpy.segments.Segment`
+    segment : `~ligo.segments.segment`
         the ``[start, stop)`` GPS segment covered by the given file
     """
     return filename_metadata(filename)[2]
