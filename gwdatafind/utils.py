@@ -96,43 +96,39 @@ def validate_proxy(path):
 
 
 def find_credential():
-    """Locate the users X509 certificate and key files
+    """Locate X509 certificate and key files.
 
-    This method uses the C{X509_USER_CERT} and C{X509_USER_KEY} to locate
-    valid proxy information. If those are not found, the standard location
-    in /tmp/ is searched.
+    This function checks the following paths in order:
 
-    @raises RuntimeError: if the proxy found via either method cannot
-                          be validated
-    @raises RuntimeError: if the cert and key files cannot be located
+    - ``${X509_USER_PROXY}``
+    - ``${X509_USER_CERT}`` and ``${X509_USER_KEY}``
+    - ``/tmp/x509up_u${UID}``
+
+    Returns
+    -------
+    cert, key : `str`, `str`
+        the paths of the certificate and key files, respectively.
+
+    Raises
+    ------
+    RuntimeError
+        if not certificate files can be found, or if the files found on
+        disk cannot be validtted.
     """
-
-    rfc_proxy_msg = ("Could not find a RFC 3820 compliant proxy credential. "
-                     "Please run 'grid-proxy-init -rfc' and try again.")
-
-    # use X509_USER_PROXY from environment if set
-    try:
-        filePath = os.environ['X509_USER_PROXY']
+    try:  # use X509_USER_PROXY from environment if set
+        cert = key = os.environ['X509_USER_PROXY']
     except KeyError:
-        pass
-    else:
-        if validate_proxy(filePath):
-            return filePath, filePath
-        raise RuntimeError(rfc_proxy_msg)
+        try:  # otherwise use _CERT and _KEY from env
+            cert = os.environ['X509_USER_CERT']
+            key = os.environ['X509_USER_KEY']
+        except KeyError:  # otherwise fall back to default LIGO path
+            uid = os.getuid()
+            cert = key = "/tmp/x509up_u%d" % uid
+    if os.access(cert, os.R_OK) and validate_proxy(cert):
+        return cert, key
 
-    # use X509_USER_CERT and X509_USER_KEY if set
-    try:
-        return os.environ['X509_USER_CERT'], os.environ['X509_USER_KEY']
-    except KeyError:
-        pass
-
-    # search for proxy file on disk
-    uid = os.getuid()
-    path = "/tmp/x509up_u%d" % uid
-    if os.access(path, os.R_OK) and validate_proxy(path):
-        return path, path
-
-    raise RuntimeError(rfc_proxy_msg)
+    raise RuntimeError("Could not find a RFC 3820 compliant proxy credential. "
+                       "Please run 'grid-proxy-init -rfc' and try again.")
 
 
 # -- LIGO-T050017 filename parsing --------------------------------------------
