@@ -1,0 +1,11 @@
+# install
+six
+pyOpenSSL
+ligo-segments
+
+# docs
+sphinx
+sphinx_rtd_theme
+sphinx_tabs
+numpydoc
+sphinx_automodapi
