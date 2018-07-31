@@ -6,7 +6,7 @@ import glob
 import os.path
 import re
 
-from ligo.segments import __version__ as VERSION
+from gwdatafind import __version__ as VERSION
 
 extensions = [
     'sphinx.ext.intersphinx',
