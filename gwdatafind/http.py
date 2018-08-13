@@ -92,7 +92,7 @@ class HTTPConnection(http_client.HTTPConnection):
         response = self.getresponse()
         if response.status != 200:
             raise HTTPError(url, response.status, response.reason,
-                            response.headers, response)
+                            response.getheaders(), response.fp)
         return response
 
     def get_json(self, url, **kwargs):
