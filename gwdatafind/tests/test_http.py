@@ -205,4 +205,4 @@ class TestHTTPConnection(object):
 
 
 class TestHTTPSConnection(TestHTTPConnection):
-    CONNECTION = HTTPConnection
+    CONNECTION = HTTPSConnection
