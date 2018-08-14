@@ -1,3 +1,9 @@
+gwdatafind (1.0.1-1) unstable; urgency=low
+
+  * bug-fix release
+
+ -- Duncan Macleod <duncan.macleod@ligo.org>  Tue, 14 Aug 2018 09:52:00 +0100
+
 gwdatafind (1.0.0-1) unstable; urgency=low
 
   * first release
