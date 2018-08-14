@@ -55,13 +55,14 @@ class HTTPConnection(http_client.HTTPConnection):
         other keywords are passed directly to `http.client.HTTPConnection`
     """
     def __init__(self, host=None, port=None,
-                 timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+                 timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None,
+                 **kwargs):
         """Create a new connection.
         """
         if host is None:
             host = get_default_host()
-        http_client.HTTPConnection.__init__(self, host, port,
-                                            timeout, source_address)
+        http_client.HTTPConnection.__init__(self, host, port, timeout,
+                                            source_address, **kwargs)
 
     def _request_response(self, method, url, **kwargs):
         """Internal method to perform request and verify reponse.
