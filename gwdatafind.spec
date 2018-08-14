@@ -1,5 +1,5 @@
 %define name    gwdatafind
-%define version 1.0.1
+%define version 1.0.2
 %define release 1
 
 Name:      %{name}
@@ -66,6 +66,9 @@ rm -rf $RPM_BUILD_ROOT
 # -- changelog
 
 %changelog
+* Tue Aug 14 2018 Duncan Macleod <duncan.macleod@ligo.org>
+- 1.0.2 bug-fix release
+
 * Tue Aug 14 2018 Duncan Macleod <duncan.macleod@ligo.org>
 - 1.0.1 bug-fix release
 
