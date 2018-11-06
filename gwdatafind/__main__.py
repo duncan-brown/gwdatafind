@@ -449,20 +449,25 @@ def main(args=None):
     else:
         out = sys.stdout
 
-    # run query
-    if opts.ping:
-        return ping(opts, out)
-    if opts.show_observatories:
-        return show_observatories(opts, out)
-    if opts.show_types:
-        return show_types(opts, out)
-    if opts.show_times:
-        return show_times(opts, out)
-    if opts.latest:
-        return latest(opts, out)
-    if opts.filename:
-        return filename(opts, out)
-    return show_urls(opts, out)
+    try:
+        # run query
+        if opts.ping:
+            return ping(opts, out)
+        if opts.show_observatories:
+            return show_observatories(opts, out)
+        if opts.show_types:
+            return show_types(opts, out)
+        if opts.show_times:
+            return show_times(opts, out)
+        if opts.latest:
+            return latest(opts, out)
+        if opts.filename:
+            return filename(opts, out)
+        return show_urls(opts, out)
+    finally:
+        # close output file if we opened it
+        if opts.output_file:
+            out.close()
 
 
 if __name__ == '__main__':  # pragma: no-cover
