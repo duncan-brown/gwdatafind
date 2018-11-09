@@ -19,6 +19,7 @@
 """
 
 import os
+import sys
 
 from OpenSSL import crypto
 
@@ -75,25 +76,42 @@ def test_validate_proxy(loader, tmpname):
     assert str(exc.value) == 'Could not find a valid proxy credential'
 
 
-@mock.patch.dict('os.environ')
-@mock.patch('gwdatafind.utils.validate_proxy')
-@mock.patch('os.access')
-def test_find_credential(access, validate, tmpname):
-    # clear the deck
-    for suffix in ('PROXY', 'CERT', 'KEY'):
-        os.environ.pop('X509_USER_{0}'.format(suffix), None)
+@mock.patch.dict('os.environ', clear=True)
+@mock.patch('gwdatafind.utils.validate_proxy', return_value=True)
+@mock.patch('os.access', return_value=True)
+@pytest.mark.parametrize('envs', [
+    ('X509_USER_PROXY',),
+    ('X509_USER_CERT', 'X509_USER_KEY'),
+])
+def test_find_credential(access, validate, tmpname, envs):
+    for env in envs:
+        os.environ[env] = tmpname
 
-    access.return_value = True
+    assert utils.find_credential() == (tmpname, tmpname)
+    validate.return_value = False
+    with pytest.raises(RuntimeError):
+        utils.find_credential()
 
-    # check fixed path for proxy
+    # check bad validation raises error
     validate.return_value = False
     with pytest.raises(RuntimeError) as exc:
         utils.find_credential()
     assert str(exc.value).startswith('Could not find a RFC 3820')
 
-    validate.return_value = True
-    assert utils.find_credential() == (
-        '/tmp/x509up_u{0}'.format(os.getuid()),) * 2
+
+
+@mock.patch.dict('os.environ', clear=True)
+@mock.patch('gwdatafind.utils.validate_proxy', return_value=True)
+@mock.patch('os.access', return_value=True)
+def test_find_credential_environment(access, validate):
+    # empty environment
+    if sys.platform == 'win32':
+        # windows has no default value
+        with pytest.raises(RuntimeError):
+            utils.find_credential()
+    else:
+        assert utils.find_credential() == (
+            '/tmp/x509up_u{0}'.format(os.getuid()),) * 2
 
     # use CERT and KEY
     os.environ.update({
@@ -101,11 +119,3 @@ def test_find_credential(access, validate, tmpname):
         'X509_USER_KEY': 'test_key',
     })
     assert utils.find_credential() == ('test_cert', 'test_key')
-
-    # use X509_USER_PROXY
-    os.environ['X509_USER_PROXY'] = tmpname
-    validate.return_value = True
-    assert utils.find_credential() == (tmpname, tmpname)
-    validate.return_value = False
-    with pytest.raises(RuntimeError):
-        utils.find_credential()
