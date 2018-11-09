@@ -1,5 +1,6 @@
 environment:
   matrix:
+    - MINICONDA: C:\Miniconda27-x64
     - MINICONDA: C:\Miniconda34-x64
     - MINICONDA: C:\Miniconda35-x64
     - MINICONDA: C:\Miniconda36-x64
@@ -14,4 +15,5 @@ install:
 build_script:
   - python -m pip install .
 test_script:
+  - python -m pip install "mock ; python_version < '3.0'"
   - python -m pytest
