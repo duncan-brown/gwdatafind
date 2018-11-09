@@ -122,7 +122,13 @@ def find_credential():
             cert = os.environ['X509_USER_CERT']
             key = os.environ['X509_USER_KEY']
         except KeyError:  # otherwise fall back to default LIGO path
-            uid = os.getuid()
+            try:
+                uid = os.getuid()
+            except AttributeError:  # windows
+                raise RuntimeError("Could not find X509 credential in either "
+                                   "X509_USER_PROXY or X509_USER_{CERT,KEY} "
+                                   "environment variables. "
+                                   "Please set these and try again")
             cert = key = "/tmp/x509up_u%d" % uid
     if os.access(cert, os.R_OK) and validate_proxy(cert):
         return cert, key

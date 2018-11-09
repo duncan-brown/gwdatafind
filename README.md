@@ -7,7 +7,8 @@ Gravitational-Wave Frame (GWF) files containing data from the current
 gravitational-wave detectors.
 
 [![PyPI version](https://badge.fury.io/py/gwdatafind.svg)](http://badge.fury.io/py/gwdatafind)
-[![Pipeline status](https://git.ligo.org/lscsoft/gwdatafind/badges/master/pipeline.svg)](https://git.ligo.org/lscsoft/gwdatafind/commits/master)
+[![Linux status](https://git.ligo.org/lscsoft/gwdatafind/badges/master/pipeline.svg)](https://git.ligo.org/lscsoft/gwdatafind/commits/master)
+[![Windows status](https://ci.appveyor.com/api/projects/status/js6gql8960qa9pkl?svg=true)](https://ci.appveyor.com/project/duncanmmacleod/gwdatafind)
 [![License](https://img.shields.io/pypi/l/gwdatafind.svg)](https://choosealicense.com/licenses/gpl-3.0/)
 [![Documentation status](https://readthedocs.org/projects/gwdatafind/badge/?version=latest)](https://gwdatafind.readthedocs.io/en/latest/?badge=latest)
 
