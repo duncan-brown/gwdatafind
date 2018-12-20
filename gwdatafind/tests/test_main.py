@@ -303,10 +303,10 @@ def test_postprocess_cache_gaps(capsys):
     )
     out = StringIO()
     assert main.postprocess_cache(URLS, args, out) is 1
-    std = capsys.readouterr()
-    print(repr(std.err))
-    assert std.err == 'Missing segments:\n\n{0}\n'.format(
-        '\n'.join('{0[0]:d} {0[1]:d}'.format(seg) for seg in GAPS))
+    _, err = capsys.readouterr()
+    assert err == 'Missing segments:\n\n{0}\n'.format(
+        '\n'.join('{0[0]:d} {0[1]:d}'.format(seg) for seg in GAPS),
+    )
 
     args.gpsstart = 4
     args.gpsend = 7
