@@ -1,43 +1,104 @@
 stages:
+  - dist
   - build
   - test
-  - package
-  - deploy
 
-.dist: &build-artifact
-  stage: package
+.dist-artifacts: &dist-artifacts
   after_script:
-    - ls -l dist/
+    # list files
+    - find dist
   artifacts:
-    expire_in: 3h
+    expire_in: 18h
     paths:
       - dist
 
-# -- build ------------------
+# -- dist -------------------
 
-package:tarball:
-  <<: *build-artifact
-  stage: build
+dist:tarball:
+  <<: *dist-artifacts
+  stage: dist
   image: python:3.6
   script:
     - python -m pip install setuptools
     - python setup.py sdist bdist_wheel
+
+# -- build ------------------
+
+.build: &build
+  <<: *dist-artifacts
+  stage: build
+  dependencies:
+    - dist:tarball
+
+.build:el: &build-rhel
+  <<: *build
+  before_script:
+    - yum install -yq
+          yum-utils
+          rpm-build
+  script:
+    - DIST_NAME=${CI_JOB_NAME#build:rhel:}
+    - mkdir -pv dist/${DIST_NAME}
+    # build src rpm
+    - SRC_RPM=$(rpmbuild -ts dist/gwdatafind*.tar.gz | cut -d\  -f2)
+    # install build dependencies for src rpm
+    - yum-builddep -y -q ${SRC_RPM}
+    # build binary rpms
+    - rpmbuild --rebuild ${SRC_RPM}
+    # move things into dist/
+    - mv -v ~/rpmbuild/RPMS/*/python*-gwdatafind-*.rpm dist/${DIST_NAME}/
+
+.build:debian: &build-debian
+  <<: *build
+  before_script:
+    - apt-get update -yqq
+    - apt-get install -yq
+          dpkg-dev
+          devscripts
+  script:
+    - DIST_NAME=${CI_JOB_NAME#build:debian:}
+    - mkdir -pv dist/${DIST_NAME}
+    # unpack tarball
+    - mkdir -pv build
+    - tar -xvf dist/gwdatafind-*.tar.gz -C ./build --strip-components=1
+    - pushd build
+    # install build dependencies
+    - mk-build-deps --tool "apt-get -y" --install --remove
+    # build debian packages
+    - dpkg-buildpackage -us -uc -b
+    # move things into dist/
+    - popd
+    - mv -v {python,python3}-gwdatafind_*.deb gwdatafind_*.{buildinfo,changes} dist/${DIST_NAME}/
+
+build:rhel:el7:
+  <<: *build-rhel
+  image: ligo/base:el7
+
+build:debian:jessie:
+  <<: *build-debian
+  image: ligo/base:jessie
+
+build:debian:stretch:
+  <<: *build-debian
+  image: ligo/base:stretch
 
 # -- test -------------------
 
 .test: &test
   stage: test
   image: python
+  dependencies:
+    - dist:tarball
   before_script:
-    - python -m pip install dist/gwdatafind*tar.gz
+    - python -m pip install dist/gwdatafind-*.tar.gz
     - python -m pip install
           "pytest>=2.8.0"
           "pytest-cov"
           "mock ; python_version < '3'"
   script:
     - python -m pytest --pyargs gwdatafind --cov-report= --cov=gwdatafind
-    - coverage run -a -m gwdatafind --help
-    - coverage report
+    - python -m coverage run -a -m gwdatafind --help
+    - python -m coverage report
 
 test:python2.7:
   <<: *test
@@ -55,6 +116,8 @@ test:python3.7:
   <<: *test
   image: python:3.7
 
+# -- docs -------------------
+
 doc:
   stage: test
   image: python:3.6
@@ -66,71 +129,3 @@ doc:
   artifacts:
     paths:
       - build/sphinx/html
-
-# -- package ----------------
-
-.package:el: &package-el
-  <<: *build-artifact
-  before_script:
-    - yum install -yq
-          rpm-build
-          epel-rpm-macros
-          python-rpm-macros
-          python-setuptools
-          python2-six
-          pyOpenSSL
-          lal-python
-          python2-ligo-segments
-          python2-pytest
-          python2-mock
-  script:
-    - python setup.py sdist
-    - rpmbuild -tb dist/gwdatafind*.tar.gz
-    - mv -v ~/rpmbuild/RPMS/*/python*-gwdatafind-*.rpm dist/
-    - rm -rf dist/*.tar.gz
-
-.package:debian: &package-debian
-  <<: *build-artifact
-  before_script:
-    - apt-get update -yqq
-    - apt-get install -yq
-          dpkg-dev
-          debhelper
-          dh-python
-          python-all-dev
-          python3-all-dev
-          python-setuptools
-          python3-setuptools
-          python-six
-          python3-six
-          python-openssl
-          python3-openssl
-          lal-python
-          lal-python3
-          python-ligo-segments
-          python3-ligo-segments
-          python-pytest
-          python3-pytest
-          python-mock
-  script:
-    - pushd .
-    - python setup.py sdist
-    - version=$(python setup.py --version)
-    - cd dist
-    - tar -xf gwdatafind-${version}.tar.gz
-    - cd gwdatafind-${version}
-    - dpkg-buildpackage -us -uc -b
-    - popd
-    - rm -rf dist/gwdatafind*
-
-package:el:7:
-  <<: *package-el
-  image: ligo/base:el7
-
-package:debian:jessie:
-  <<: *package-debian
-  image: ligo/base:jessie
-
-package:debian:stretch:
-  <<: *package-debian
-  image: ligo/base:stretch
