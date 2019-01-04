@@ -16,7 +16,8 @@ Packager:  Duncan Macleod <duncan.macleod@ligo.org>
 BuildArch: noarch
 BuildRequires: rpm-build
 BuildRequires: python-rpm-macros
-BuildRequires: python-setuptools
+BuildRequires: python2-rpm-macros
+BuildRequires: python2-setuptools
 #BuildRequires: python2-six
 #BuildRequires: pyOpenSSL
 #BuildRequires: python2-ligo-segments
