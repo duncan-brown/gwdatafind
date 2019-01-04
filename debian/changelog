@@ -1,3 +1,9 @@
+gwdatafind (1.0.3-1) unstable; urgency=low
+
+  * bug-fix release to support python3 RPMs and testing
+
+ -- Duncan Macleod <duncan.macleod@ligo.org>  Tue, 14 Aug 2018 12:50:00 +0100
+
 gwdatafind (1.0.2-1) unstable; urgency=low
 
   * bug-fix release

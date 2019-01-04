@@ -42,4 +42,4 @@ from .ui import *
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
 __credits__ = 'Scott Koranda <scott.koranda@ligo.org>'
-__version__ = '1.0.2'
+__version__ = '1.0.3'

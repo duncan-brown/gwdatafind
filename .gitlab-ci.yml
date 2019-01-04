@@ -33,9 +33,12 @@ dist:tarball:
 .build:el: &build-rhel
   <<: *build
   before_script:
-    - yum install -yq
+    # install enough to create a src RPM and parse the build dependencies
+    - yum -y -q install
           yum-utils
           rpm-build
+          python34
+          python3-rpm-macros
   script:
     - DIST_NAME=${CI_JOB_NAME#build:rhel:}
     - mkdir -pv dist/${DIST_NAME}
