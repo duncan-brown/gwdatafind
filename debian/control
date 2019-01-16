@@ -31,6 +31,7 @@ Depends: ${misc:Depends},
          ${python:Depends},
          python-six (>= 1.9.0),
          python-ligo-segments
+Conflicts: glue (<< 1.61.0),
 Description: The client library for the LIGO Data Replicator (LDR) service
  .
              The DataFind service allows users to query for the location of

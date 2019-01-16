@@ -42,6 +42,7 @@ Summary:  Python %{python2_version} library for the LIGO Data Replicator (LDR) s
 Requires: python-six
 Requires: pyOpenSSL
 Requires: python2-ligo-segments
+Conflicts: glue < 1.61.0
 %{?python_provide:%python_provide python2-%{name}}
 %description -n python2-%{name}
 The DataFind service allows users to query for the location of
@@ -85,6 +86,7 @@ rm -rf $RPM_BUILD_ROOT
 %files -n python2-%{name}
 %license LICENSE
 %doc README.md
+%{_bindir}/gw_data_find
 %{python2_sitelib}/*
 
 %files -n python%{python3_version_nodots}-%{name}
