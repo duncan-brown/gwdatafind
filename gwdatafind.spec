@@ -22,6 +22,7 @@ BuildRequires: python2-rpm-macros
 BuildRequires: python3-rpm-macros
 BuildRequires: python2-setuptools
 BuildRequires: python%{python3_version_nodots}-setuptools
+BuildRequires: help2man
 
 # testing dependencies (python3x only)
 BuildRequires: python%{python3_version_nodots}-six
@@ -79,6 +80,15 @@ Python %{python3_version} interface libraries.
 %install
 %py2_install
 %py3_install
+# make man page for gw_data_find
+mkdir -vp %{buildroot}%{_mandir}/man1
+env PYTHONPATH="%{buildroot}%{python2_sitelib}" \
+help2man \
+    --source %{name} \
+    --version-string %{version} \
+    --section 1 --no-info --no-discard-stderr \
+    --output %{buildroot}%{_mandir}/man1/gw_data_find.1 \
+    %{buildroot}%{_bindir}/gw_data_find
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -88,6 +98,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc README.md
 %{_bindir}/gw_data_find
 %{python2_sitelib}/*
+%{_mandir}/man1/gw_data_find.1*
 
 %files -n python%{python3_version_nodots}-%{name}
 %license LICENSE

@@ -19,6 +19,7 @@ Build-Depends: debhelper (>= 9),
                python3-openssl,
                python-ligo-segments,
                python3-ligo-segments,
+               help2man,
                python-pytest (>= 2.8.0),
                python3-pytest (>= 2.8.0),
                python-mock
