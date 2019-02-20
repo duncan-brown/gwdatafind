@@ -1,8 +1,14 @@
+gwdatafind (1.0.4-1) unstable; urgency=low
+
+  * packaging release to include command-line scripts in python2 package
+
+ -- Duncan Macleod <duncan.macleod@ligo.org>  Fri, 11 Jan 2019 10:14:00 +0000
+
 gwdatafind (1.0.3-1) unstable; urgency=low
 
   * bug-fix release to support python3 RPMs and testing
 
- -- Duncan Macleod <duncan.macleod@ligo.org>  Tue, 14 Aug 2018 12:50:00 +0100
+ -- Duncan Macleod <duncan.macleod@ligo.org>  Fri, 04 Jan 2019 10:52:51 +0000
 
 gwdatafind (1.0.2-1) unstable; urgency=low
 

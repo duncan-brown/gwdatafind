@@ -1,5 +1,5 @@
 %define name    gwdatafind
-%define version 1.0.3
+%define version 1.0.4
 %define release 1
 
 Name:      %{name}
@@ -106,6 +106,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python3_sitelib}/*
 
 # -- changelog
+
+%changelog
+* Fri Jan 11 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.4-1
+- include command-line client, requires matching glue release
 
 %changelog
 * Fri Jan 04 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.3-1
