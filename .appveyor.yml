@@ -10,9 +10,11 @@ install:
   - conda config --add channels conda-forge
   - conda install --yes "pip" "setuptools>=27.3"
   - conda install --yes "six>=1.5" "pyopenssl" "ligo-segments>=1.0.0"
-  - conda install --yes "pytest>=3.1"
+  - conda install --yes "pytest>=3.1" "pytest-cov"
 build_script:
   - python -m pip install .
 test_script:
   - python -m pip install "mock ; python_version < '3.0'"
-  - python -m pytest
+  - python -m pytest --pyargs gwdatafind --cov gwdatafind --junitxml=junit.xml
+on_success:
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\junit.xml))
