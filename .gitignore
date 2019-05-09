@@ -13,5 +13,8 @@ __pycache__/
 /.coverage
 .pytest_cache/
 
+# documentation outputs
 /docs/_build/
 /docs/api/
+!/docs/api/gwdatafind.utils.rst
+*.automodapi
