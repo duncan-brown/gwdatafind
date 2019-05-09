@@ -10,9 +10,9 @@ from gwdatafind import __version__ as VERSION
 
 extensions = [
     'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
     'sphinx_automodapi.automodapi',
     'sphinx_tabs.tabs',
-    'numpydoc',
 ]
 
 #templates_path = ['_templates']
@@ -27,7 +27,7 @@ copyright = u'2018, Duncan Macleod'
 author = u'Duncan Macleod'
 
 # The short X.Y version.
-version = re.split('[\w-]', VERSION)[0]
+version = re.split(r'[\w-]', VERSION)[0]
 # The full version, including alpha/beta/rc tags.
 release = VERSION
 
@@ -48,6 +48,9 @@ intersphinx_mapping = {
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
 default_role = 'obj'
+
+# napoleon configuration
+napoleon_use_rtype = False
 
 # Don't inherit in automodapi
 numpydoc_show_class_members = False

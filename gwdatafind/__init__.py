@@ -32,10 +32,53 @@ certificate that is registered with the server in question.
 Quick-start
 -----------
 
-A high-level :meth:`connect` function is provided that will automatically
-select the correct protocol based on the host given, and will attempt to
-access any required X509 credentials.
-"""
+The following convenience functions are provided to perform single queries
+without a persistent question:
+
+
+.. currentmodule:: gwdatafind
+
+.. autosummary::
+    :nosignatures:
+
+    ping
+    find_observatories
+    find_types
+    find_times
+    find_url
+    find_urls
+    find_latest
+
+For example:
+
+>>> from gwdatafind import find_urls
+>>> urls = find_urls("L", "L1_GWOSC_O2_4KHZ_R1", 1187008880, 1187008884,
+...                  host="datafind.ligo.org:443")
+>>> print(urls)
+['file://localhost/cvmfs/gwosc.osgstorage.org/gwdata/O2/strain.4k/frame.v1/L1/1186988032/L-L1_GWOSC_O2_4KHZ_R1-1187008512-4096.gwf']
+
+Additionally, one can manually open a connection using the
+:func:`connect` function, and then perform multiple queries.
+The :func:`connect` function will automatically select the correct protocol
+based on the host given, and will attempt to access any required X509
+credentials.
+
+For example:
+
+>>> from gwdatafind import connect
+>>> conn = connect(host="datafind.ligo.org", port=443)
+>>> obs = conn.find_observatories()
+>>> print(obs)
+['H', 'V', 'L']
+>>> urls = {}
+>>> for ifo in obs:
+...     urls[ifo] = conn.find_urls(ifo, "{}1_GWOSC_O2_4KHZ_R1".format(ifo),
+...                                1187008880, 1187008884)
+>>> print(urls)
+{'H': ['file://localhost/cvmfs/gwosc.osgstorage.org/gwdata/O2/strain.4k/frame.v1/H1/1186988032/H-H1_GWOSC_O2_4KHZ_R1-1187008512-4096.gwf'],
+ 'V': ['file://localhost/cvmfs/gwosc.osgstorage.org/gwdata/O2/strain.4k/frame.v1/V1/1186988032/V-V1_GWOSC_O2_4KHZ_R1-1187008512-4096.gwf'],
+ 'L': ['file://localhost/cvmfs/gwosc.osgstorage.org/gwdata/O2/strain.4k/frame.v1/L1/1186988032/L-L1_GWOSC_O2_4KHZ_R1-1187008512-4096.gwf']}
+"""  # noqa: E501
 
 from .http import *
 from .ui import *
