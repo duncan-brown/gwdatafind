@@ -1,10 +1,15 @@
 stages:
   - dist
+  - source
   - build
   - test
 
 variables:
+  APT_OPTS: "-y -q -q -o dir::cache::archives=${CI_PROJECT_DIR}/.cache/apt"
+  PKG_NAME: "gwdatafind"
   PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
+  GIT_STRATEGY: none
+  YUM_OPTS: "-y -q --setopt=cachedir=${CI_PROJECT_DIR}/.cache/yum --setopt=keepcache=1"
 
 .dist-artifacts: &dist-artifacts
   after_script:
@@ -15,74 +20,175 @@ variables:
     paths:
       - dist
 
+.yum-cache: &yum-cache
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .cache/yum
+
+.yum-update: &yum-update
+  yum-config-manager --disable htcondor 1>/dev/null &&
+  yum ${YUM_OPTS} -q update
+
+.apt-cache: &apt-cache
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .cache/apt
+
+.apt-update: &apt-update
+  mkdir -p "${CI_PROJECT_DIR}/.cache/apt/partial" &&
+  apt-get autoclean &&
+  apt-get ${APT_OPTS} update
+
 # -- dist -------------------
 
 dist:tarball:
   <<: *dist-artifacts
   stage: dist
   image: python:3.6
+  variables:
+    GIT_STRATEGY: fetch
   script:
     - python -m pip install setuptools
     - python setup.py sdist bdist_wheel
+
+# -- source -----------------
+
+.source:el: &source-rhel
+  <<: *dist-artifacts
+  <<: *yum-cache
+  image: centos
+  stage: source
+  dependencies:
+    - dist:tarball
+  before_script:
+    - *yum-update
+    - yum ${YUM_OPTS} install
+          rpm-build
+          rpmlint
+          python-rpm-macros
+          python-srpm-macros
+  script:
+    - rpmbuild -ts --define "_srcrpmdir $(pwd)/dist" dist/${PKG_NAME}*.tar.gz
+    - rpmlint dist/*.src.rpm
+  artifacts:
+    paths:
+      - "dist/*.src.rpm"
+
+source:rhel:el7:
+  <<: *source-rhel
+  image: ligo/base:el7
+
+.source:debian: &source-debian
+  <<: *dist-artifacts
+  <<: *apt-cache
+  image: debian
+  stage: source
+  dependencies:
+    - dist:tarball
+  before_script:
+    - *apt-update
+    - apt-get ${APT_OPTS} install
+          dpkg-dev
+  script:
+    - pushd dist
+    # rename tarball for debian orig
+    - _tarball=$(find . -name "${PKG_NAME}-*.tar.gz")
+    - _tarname=$(basename --suffix=".tar.gz" "${_tarball}")
+    - _orig="${_tarname/-/_}.orig.tar.gz"
+    - mv "${_tarball}" "${_orig}"
+    # create debian source package files
+    - tar -xf "${_orig}"
+    - pushd ${_tarname}
+    - dpkg-source --build .
+    # clean up
+    - popd
+    - rm -rf ${_tarname}
+  artifacts:
+    paths:
+      - "dist/*.orig.tar.*"
+      - "dist/*.debian.tar.*"
+      - "dist/*.dsc"
+
+source:debian:stretch:
+  <<: *source-debian
+  image: ligo/base:stretch
+
+#source:debian:buster:
+#  <<: *source-debian
+#  image: ligo/base:buster
 
 # -- build ------------------
 
 .build: &build
   <<: *dist-artifacts
   stage: build
-  dependencies:
-    - dist:tarball
 
 .build:el: &build-rhel
   <<: *build
+  <<: *yum-cache
   before_script:
     # install enough to create a src RPM and parse the build dependencies
-    - yum -y -q install
+    - *yum-update
+    - yum ${YUM_OPTS} install
           yum-utils
           rpm-build
-          python34
-          python3-rpm-macros
   script:
-    - DIST_NAME=${CI_JOB_NAME#build:rhel:}
-    - mkdir -pv dist/${DIST_NAME}
-    # build src rpm
-    - SRC_RPM=$(rpmbuild -ts dist/gwdatafind*.tar.gz | cut -d\  -f2)
+    - pushd dist
+    - SRC_RPM="${PKG_NAME}-*.src.rpm"
     # install build dependencies for src rpm
-    - yum-builddep -y -q ${SRC_RPM}
+    - yum-builddep ${YUM_OPTS} ${SRC_RPM}
     # build binary rpms
-    - rpmbuild --rebuild ${SRC_RPM}
-    # move things into dist/
-    - mv -v ~/rpmbuild/RPMS/*/python*-gwdatafind-*.rpm dist/${DIST_NAME}/
+    - rpmbuild --rebuild --define "_rpmdir $(pwd)" ${SRC_RPM}
+  artifacts:
+    paths:
+      - "dist/*/*.rpm"
 
 .build:debian: &build-debian
   <<: *build
+  <<: *apt-cache
   before_script:
-    - apt-get update -yqq
-    - apt-get install -yq
+    - *apt-update
+    - apt-get ${APT_OPTS} install
           dpkg-dev
           devscripts
   script:
-    - DIST_NAME=${CI_JOB_NAME#build:debian:}
-    - mkdir -pv dist/${DIST_NAME}
     # unpack tarball
-    - mkdir -pv build
-    - tar -xvf dist/gwdatafind-*.tar.gz -C ./build --strip-components=1
-    - pushd build
+    - pushd dist
+    - find .
+    - tar -xf ${PKG_NAME}_*.orig.tar.gz
+    - pushd ${PKG_NAME}-*/
     # install build dependencies
-    - mk-build-deps --tool "apt-get -y" --install --remove
+    - mk-build-deps --tool "apt-get ${APT_OPTS}" --install --remove
     # build debian packages
     - dpkg-buildpackage -us -uc -b
-    # move things into dist/
+    # clean up
     - popd
-    - mv -v {python,python3}-gwdatafind_*.deb gwdatafind_*.{buildinfo,changes} dist/${DIST_NAME}/
+    - rm -rf ${PKG_NAME}-*/
+  artifacts:
+    paths:
+      - "dist/*.buildinfo"
+      - "dist/*.changes"
+      - "dist/*.deb"
 
 build:rhel:el7:
   <<: *build-rhel
   image: ligo/base:el7
+  dependencies:
+    - source:rhel:el7
 
 build:debian:stretch:
   <<: *build-debian
   image: ligo/base:stretch
+  dependencies:
+    - source:debian:stretch
+
+#build:debian:buster:
+#  <<: *build-debian
+#  image: ligo/base:buster
+#  dependencies:
+#    - source:debian:buster
 
 # -- test -------------------
 
@@ -92,14 +198,17 @@ build:debian:stretch:
   dependencies:
     - dist:tarball
   before_script:
-    - python -m pip install dist/gwdatafind-*.tar.gz
-    - python -m pip install
-          "pytest>=2.8.0"
-          "pytest-cov"
-          "mock ; python_version < '3'"
+    # install package and its dependencies
+    - python -m pip install dist/${PKG_NAME}-*.tar.gz
+    # install other dependencies (including those for testing)
+    - tar --wildcards --strip-components 1 -xf dist/${PKG_NAME}-*.tar.gz */requirements.txt
+    - python -m pip install -r requirements.txt
   script:
-    - python -m pytest --pyargs gwdatafind --cov-report= --cov=gwdatafind --junitxml=junit.xml
-    - python -m coverage run -a -m gwdatafind --help
+    # run test suite
+    - python -m pytest --pyargs ${PKG_NAME} --cov-report= --cov=${PKG_NAME} --junitxml=junit.xml
+    # run command-line "python -m <>"
+    - python -m coverage run -a -m ${PKG_NAME} --help
+    # print coverage report
     - python -m coverage report
   cache:
     key: "${CI_JOB_NAME}"
@@ -108,7 +217,6 @@ build:debian:stretch:
   artifacts:
     reports:
       junit: junit.xml
-
 
 test:python2.7:
   <<: *test
@@ -131,6 +239,8 @@ test:python3.7:
 doc:
   stage: test
   image: python:3.6
+  variables:
+    GIT_STRATEGY: fetch
   before_script:
     - python -m pip install sphinx
   script:
