@@ -1,6 +1,6 @@
 %define name    gwdatafind
 %define version 1.0.4
-%define release 1
+%define release 2
 
 Name:      %{name}
 Version:   %{version}
@@ -78,8 +78,9 @@ Python %{python3_version} interface libraries.
 %{__python3} -m pytest --pyargs %{name}
 
 %install
-%py2_install
 %py3_install
+# install py2 last so that /usr/bin/gw_data_find comes from that
+%py2_install
 # make man page for gw_data_find
 mkdir -vp %{buildroot}%{_mandir}/man1
 env PYTHONPATH="%{buildroot}%{python2_sitelib}" \
@@ -108,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 # -- changelog
 
 %changelog
+* Wed Jun 12 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.4-2
+- fixed incorrect installation of /usr/bin/gw_data_find
+
 * Fri Jan 11 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.4-1
 - include command-line client, requires matching glue release
 
