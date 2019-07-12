@@ -3,6 +3,11 @@ six
 pyOpenSSL
 ligo-segments
 
+# test
+pytest >= 2.8.0
+pytest-cov
+mock ; python_version < '3'
+
 # docs
 sphinx
 sphinx_rtd_theme
