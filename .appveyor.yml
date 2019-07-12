@@ -5,7 +5,7 @@ environment:
     - MINICONDA: C:\Miniconda36-x64
     - MINICONDA: C:\Miniconda37-x64
 install:
-  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+  - call "%MINICONDA%\\Scripts\\activate.bat"
   - conda config --set always_yes yes
   - conda config --add channels conda-forge
   - conda install --yes "pip" "setuptools>=27.3"
