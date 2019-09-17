@@ -18,17 +18,18 @@ BuildArch: noarch
 # build dependencies
 BuildRequires: rpm-build
 BuildRequires: python-rpm-macros
+BuildRequires: python-srpm-macros
 BuildRequires: python2-rpm-macros
 BuildRequires: python3-rpm-macros
 BuildRequires: python2-setuptools
-BuildRequires: python%{python3_version_nodots}-setuptools
+BuildRequires: python%{python3_pkgversion}-setuptools
 BuildRequires: help2man
 
 # testing dependencies (python3x only)
-BuildRequires: python%{python3_version_nodots}-six
-BuildRequires: python%{python3_version_nodots}-pyOpenSSL
-BuildRequires: python%{python3_version_nodots}-ligo-segments
-BuildRequires: python%{python3_version_nodots}-pytest >= 2.8.0
+BuildRequires: python%{python3_pkgversion}-six
+BuildRequires: python%{python3_pkgversion}-pyOpenSSL
+BuildRequires: python%{python3_pkgversion}-ligo-segments
+BuildRequires: python%{python3_pkgversion}-pytest >= 2.8.0
 
 %description
 The DataFind service allows users to query for the location of
@@ -53,13 +54,13 @@ Python %{python2_version} interface libraries.
 
 # -- python3x-gwdatafind
 
-%package -n python%{python3_version_nodots}-%{name}
+%package -n python%{python3_pkgversion}-%{name}
 Summary:  Python %{python3_version} library for the LIGO Data Replicator (LDR) service
-Requires: python%{python3_version_nodots}-six
-Requires: python%{python3_version_nodots}-pyOpenSSL
-Requires: python%{python3_version_nodots}-ligo-segments
-%{?python_provide:%python_provide python%{python3_version_nodots}-%{name}}
-%description -n python%{python3_version_nodots}-%{name}
+Requires: python%{python3_pkgversion}-six
+Requires: python%{python3_pkgversion}-pyOpenSSL
+Requires: python%{python3_pkgversion}-ligo-segments
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
+%description -n python%{python3_pkgversion}-%{name}
 The DataFind service allows users to query for the location of
 Gravitational-Wave Frame (GWF) files containing data from the current
 gravitational-wave detectors. This package provides the
@@ -101,7 +102,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python2_sitelib}/*
 %{_mandir}/man1/gw_data_find.1*
 
-%files -n python%{python3_version_nodots}-%{name}
+%files -n python%{python3_pkgversion}-%{name}
 %license LICENSE
 %doc README.md
 %{python3_sitelib}/*
@@ -109,13 +110,13 @@ rm -rf $RPM_BUILD_ROOT
 # -- changelog
 
 %changelog
-* Wed Jun 12 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.4-2
+* Fri Jul 12 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.4-2
 - fixed incorrect installation of /usr/bin/gw_data_find
+- use python-srpm-macros to provide python3 versions
 
 * Fri Jan 11 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.4-1
 - include command-line client, requires matching glue release
 
-%changelog
 * Fri Jan 04 2019 Duncan Macleod <duncan.macleod@ligo.org> 1.0.3-1
 - added python3 packages
 
