@@ -21,6 +21,7 @@ BuildRequires: python-rpm-macros
 BuildRequires: python-srpm-macros
 BuildRequires: python2-rpm-macros
 BuildRequires: python3-rpm-macros
+BuildRequires: epel-rpm-macros
 BuildRequires: python2-setuptools
 BuildRequires: python%{python3_pkgversion}-setuptools
 BuildRequires: help2man
