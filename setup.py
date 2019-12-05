@@ -82,7 +82,7 @@ setup(
     author='Duncan Macleod',
     author_email='duncan.macleod@ligo.org',
     url='https://gwdatafind.readthedocs.io/',
-    license='GPLv3',
+    license='GPL-3.0-or-later',
     cmdclass=cmdclass,
     setup_requires=setup_requires,
     install_requires=install_requires,
@@ -93,7 +93,8 @@ setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        ('License :: OSI Approved :: '
+         'GNU General Public License v3 or later (GPLv3+)'),
         'Natural Language :: English',
         'Operating System :: Unix',
         'Programming Language :: Python',

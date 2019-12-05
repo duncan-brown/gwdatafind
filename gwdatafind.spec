@@ -8,7 +8,7 @@ Release:   %{release}%{?dist}
 Summary:   The client library for the LIGO Data Replicator (LDR) service
 
 Group:     Development/Libraries
-License:   GPLv3
+License:   GPL-3.0-or-later
 Url:       https://gwdatafind.readthedocs.io/
 Source0:   https://pypi.io/packages/source/g/%{name}/%{name}-%{version}.tar.gz
 Packager:  Duncan Macleod <duncan.macleod@ligo.org>
