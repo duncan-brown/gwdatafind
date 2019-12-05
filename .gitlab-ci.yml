@@ -203,12 +203,13 @@ build:debian:stretch:
     - tar --wildcards --strip-components 1 -xf dist/${PKG_NAME}-*.tar.gz */requirements.txt
     - python -m pip install -r requirements.txt
   script:
+    - "PYTHON=${PYTHON:-${CI_JOB_NAME##*:}}"
     # run test suite
-    - python -m pytest --pyargs ${PKG_NAME} --cov-report= --cov=${PKG_NAME} --junitxml=junit.xml
+    - ${PYTHON} -m pytest --pyargs ${PKG_NAME} --cov-report= --cov=${PKG_NAME} --junitxml=junit.xml
     # run command-line "python -m <>"
-    - python -m coverage run -a -m ${PKG_NAME} --help
+    - ${PYTHON} -m coverage run -a -m ${PKG_NAME} --help
     # print coverage report
-    - python -m coverage report
+    - ${PYTHON} -m coverage report
   cache:
     key: "${CI_JOB_NAME}"
     paths:
@@ -236,6 +237,26 @@ test:python3.7:
 test:python3.8:
   <<: *test
   image: python:3.8
+
+test:el7:python3.6:
+  <<: *test
+  <<: *yum-cache
+  image: igwn/base:el7
+  needs:
+    - build:rhel:el7
+  before_script:
+    - yum ${YUM_OPTS} install dist/*/*.rpm
+    - yum ${YUM_OPTS} install python36-pytest python36-coverage
+
+test:stretch:python3.5:
+  <<: *test
+  <<: *apt-cache
+  image: igwn/base:stretch
+  needs:
+    - build:debian:stretch
+  before_script:
+    - dpkg --install dist/*.deb
+    - apt-get ${APT_OPTS} install python3-pytest python3-coverage
 
 # -- docs -------------------
 
