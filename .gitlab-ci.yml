@@ -258,6 +258,7 @@ test:stretch:python3.5:
   needs:
     - build:debian:stretch
   before_script:
+    - *apt-update
     - dpkg --install dist/*.deb || { apt-get ${APT_OPTS} -y -f install; dpkg -i dist/*.deb; }
     - apt-get ${APT_OPTS} install
           python3-coverage
