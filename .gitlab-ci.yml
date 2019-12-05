@@ -246,7 +246,10 @@ test:el7:python3.6:
     - build:rhel:el7
   before_script:
     - yum ${YUM_OPTS} install dist/*/*.rpm
-    - yum ${YUM_OPTS} install python36-pytest python36-coverage
+    - yum ${YUM_OPTS} install
+          python36-coverage
+          python36-pytest
+          python36-pytest-cov
 
 test:stretch:python3.5:
   <<: *test
@@ -256,7 +259,10 @@ test:stretch:python3.5:
     - build:debian:stretch
   before_script:
     - dpkg --install dist/*.deb
-    - apt-get ${APT_OPTS} install python3-pytest python3-coverage
+    - apt-get ${APT_OPTS} install
+          python3-coverage
+          python3-pytest
+          python3-pytest-cov
 
 # -- docs -------------------
 
