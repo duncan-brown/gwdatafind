@@ -67,8 +67,7 @@ dist:tarball:
     - yum ${YUM_OPTS} install
           rpm-build
           rpmlint
-          python-rpm-macros
-          python-srpm-macros
+          epel-rpm-macros
   script:
     - rpmbuild -ts --define "_srcrpmdir $(pwd)/dist" dist/${PKG_NAME}*.tar.gz
     - rpmlint dist/*.src.rpm
