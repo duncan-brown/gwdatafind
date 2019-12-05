@@ -77,7 +77,7 @@ dist:tarball:
 
 source:rhel:el7:
   <<: *source-rhel
-  image: ligo/base:el7
+  image: igwn/base:el7
 
 .source:debian: &source-debian
   <<: *dist-artifacts
@@ -112,11 +112,11 @@ source:rhel:el7:
 
 source:debian:stretch:
   <<: *source-debian
-  image: ligo/base:stretch
+  image: igwn/base:stretch
 
 #source:debian:buster:
 #  <<: *source-debian
-#  image: ligo/base:buster
+#  image: igwn/base:buster
 
 # -- build ------------------
 
@@ -173,19 +173,19 @@ source:debian:stretch:
 
 build:rhel:el7:
   <<: *build-rhel
-  image: ligo/base:el7
+  image: igwn/base:el7
   dependencies:
     - source:rhel:el7
 
 build:debian:stretch:
   <<: *build-debian
-  image: ligo/base:stretch
+  image: igwn/base:stretch
   dependencies:
     - source:debian:stretch
 
 #build:debian:buster:
 #  <<: *build-debian
-#  image: ligo/base:buster
+#  image: igwn/base:buster
 #  dependencies:
 #    - source:debian:buster
 
