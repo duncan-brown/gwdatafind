@@ -60,7 +60,7 @@ dist:tarball:
   <<: *yum-cache
   image: centos
   stage: source
-  dependencies:
+  needs:
     - dist:tarball
   before_script:
     - *yum-update
@@ -84,7 +84,7 @@ source:rhel:el7:
   <<: *apt-cache
   image: debian
   stage: source
-  dependencies:
+  needs:
     - dist:tarball
   before_script:
     - *apt-update
@@ -175,19 +175,19 @@ source:debian:stretch:
 build:rhel:el7:
   <<: *build-rhel
   image: igwn/base:el7
-  dependencies:
+  needs:
     - source:rhel:el7
 
 build:debian:stretch:
   <<: *build-debian
   image: igwn/base:stretch
-  dependencies:
+  needs:
     - source:debian:stretch
 
 #build:debian:buster:
 #  <<: *build-debian
 #  image: igwn/base:buster
-#  dependencies:
+#  needs:
 #    - source:debian:buster
 
 # -- test -------------------
@@ -195,7 +195,7 @@ build:debian:stretch:
 .test: &test
   stage: test
   image: python
-  dependencies:
+  needs:
     - dist:tarball
   before_script:
     # install package and its dependencies
@@ -243,6 +243,7 @@ test:python3.8:
 doc:
   stage: test
   image: python:3.6
+  needs: []
   variables:
     GIT_STRATEGY: fetch
   before_script:
