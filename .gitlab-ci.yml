@@ -3,6 +3,7 @@ stages:
   - source
   - build
   - test
+  - documentation
 
 variables:
   APT_OPTS: "-y -q -q -o dir::cache::archives=${CI_PROJECT_DIR}/.cache/apt"
@@ -241,7 +242,7 @@ test:python3.8:
 # -- docs -------------------
 
 doc:
-  stage: test
+  stage: documentation
   image: python:3.6
   needs: []
   variables:
