@@ -7,38 +7,37 @@ Priority: optional
 Standards-Version: 3.9.1
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.4
-Build-Depends: debhelper (>= 9),
-               dh-python,
-               python-all,
-               python3-all,
-               python-setuptools,
-               python3-setuptools,
-               python-six,
-               python3-six,
-               python-openssl,
-               python3-openssl,
-               python-ligo-segments,
-               python3-ligo-segments,
-               help2man,
-               python-pytest (>= 2.8.0),
-               python3-pytest (>= 2.8.0),
-               python-mock
+Build-Depends:
+ debhelper (>= 9),
+ dh-python,
+ python-all,
+ python-ligo-segments,
+ python-mock,
+ python-pytest (>= 2.8.0),
+ python-setuptools,
+ python3-all,
+ python3-ligo-segments,
+ python3-openssl,
+ python3-setuptools,
+ python3-six,
+ help2man,
+ python3-pytest (>= 2.8.0),
 
 # -- python-gwdatafind --------------------------------------------------------
 
 Package: python-gwdatafind
 Architecture: all
-Depends: ${misc:Depends},
-         ${python:Depends},
-         python-six (>= 1.9.0),
-         python-ligo-segments
-Conflicts: glue (<< 1.61.0),
+Depends:
+ ${misc:Depends},
+ ${python:Depends},
+ python-ligo-segments,
+ python-six (>= 1.9.0),
 Description: The client library for the LIGO Data Replicator (LDR) service
+ The DataFind service allows users to query for the location of
+ Gravitational-Wave Frame (GWF) files containing data from the
+ current gravitational-wave detectors.
  .
-             The DataFind service allows users to query for the location of
-             Gravitational-Wave Frame (GWF) files containing data from the
-             current gravitational-wave detectors.
- .
+ This package provides the Python 2 library.
 
 # -- python3-gwdatafind -------------------------------------------------------
 
@@ -49,8 +48,26 @@ Depends: ${misc:Depends},
          python3-six (>= 1.9.0),
          python3-ligo-segments
 Description: The client library for the LIGO Data Replicator (LDR) service
+ The DataFind service allows users to query for the location of
+ Gravitational-Wave Frame (GWF) files containing data from the
+ current gravitational-wave detectors.
  .
-             The DataFind service allows users to query for the location of
-             Gravitational-Wave Frame (GWF) files containing data from the
-             current gravitational-wave detectors.
+ This package provides the Python 3 library.
+
+# -- gwdatafind ---------------------------------------------------------------
+
+Package: gwdatafind
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-gwdatafind,
+Conflicts:
+ glue (<< 1.61.0),
+ python-gwdatafind (<< 1.0.4-3),
+Description: The client library for the LIGO Data Replicator (LDR) service
+ The DataFind service allows users to query for the location of
+ Gravitational-Wave Frame (GWF) files containing data from the
+ current gravitational-wave detectors.
  .
+ This package provides the command-line interface `gw_data_find'.

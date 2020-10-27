@@ -3,6 +3,7 @@ stages:
   - source
   - build
   - test
+  - documentation
 
 variables:
   APT_OPTS: "-y -q -q -o dir::cache::archives=${CI_PROJECT_DIR}/.cache/apt"
@@ -131,8 +132,9 @@ source:debian:stretch:
     # install enough to create a src RPM and parse the build dependencies
     - *yum-update
     - yum ${YUM_OPTS} install
-          yum-utils
+          epel-rpm-macros
           rpm-build
+          yum-utils
   script:
     - pushd dist
     - SRC_RPM="${PKG_NAME}-*.src.rpm"
@@ -268,8 +270,9 @@ test:stretch:python3.5:
 # -- docs -------------------
 
 doc:
-  stage: test
+  stage: documentation
   image: python:3.6
+  needs: []
   variables:
     GIT_STRATEGY: fetch
   before_script:
