@@ -100,8 +100,6 @@ help2man \
     %{buildroot}%{_bindir}/gw_data_find
 
 %check
-mkdir tests
-pushd tests
 # test python2
 env PYTHONPATH="%{buildroot}%{python2_sitelib}" %{__python2} -m gwdatafind --help
 # test python3
