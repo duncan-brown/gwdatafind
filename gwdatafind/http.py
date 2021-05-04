@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012-2015  Scott Koranda, 2015+ Duncan Macleod
+# Copyright (C) 2012-2015  Scott Koranda, 2015+ Duncan Macleod,
+# 2021 Duncan Brown
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -59,10 +60,20 @@ class HTTPConnection(http_client.HTTPConnection):
                  **kwargs):
         """Create a new connection.
         """
+        self.bearer_token = None
         if host is None:
             host = get_default_host()
         http_client.HTTPConnection.__init__(self, host, port, timeout,
                                             source_address, **kwargs)
+
+    def set_bearer_token(self, token):
+        """Add a bearer token for RFC 6750 authentication
+
+        Parameters
+        ----------
+        token : `str`, serialized token
+        """
+        self.bearer_token = token
 
     def _request_response(self, method, url, **kwargs):
         """Internal method to perform request and verify reponse.
@@ -89,12 +100,18 @@ class HTTPConnection(http_client.HTTPConnection):
         RuntimeError
             if query is unsuccessful
         """
-        self.request(method, url, **kwargs)
+        if self.bearer_token:
+            auth_header = {'Authorization' :
+                           'Bearer {}'.format(self.bearer_token)}
+            self.request(method, url, header=auth_header, **kwargs)
+        else:
+            self.request(method, url, **kwargs)
         response = self.getresponse()
         if response.status != 200:
             raise HTTPError(url, response.status, response.reason,
                             response.getheaders(), response.fp)
         return response
+
 
     def get_json(self, url, **kwargs):
         """Perform a 'GET' request and return the decode the result as JSON

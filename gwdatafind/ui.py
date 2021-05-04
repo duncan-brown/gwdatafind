@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright Duncan Macleod 2018
+# Copyright 2018 Duncan Macleod, 2021 Duncan Brown
 #
 # This file is part of GWDataFind.
 #
@@ -18,7 +18,7 @@
 
 import ssl
 
-from .utils import (find_credential, get_default_host)
+from .utils import (find_scitoken, find_credential, get_default_host)
 from .http import (HTTPConnection, HTTPSConnection)
 
 __author__ = 'Duncan Macleod <duncan.macleod@ligo.org>'
@@ -28,8 +28,9 @@ def connect(host=None, port=None):
     """Open a new connection to a Datafind server
 
     This method will auto-select between HTTP and HTTPS based on port,
-    and (for HTTPS) will automatically load the necessary X509 credentials
-    using :func:`gwdatafind.utils.find_credential`.
+    and (for HTTPS) will automatically try to loacte a scitoken using
+    :func:`gwdatafind.utils.find_scitoken` or, if this fails, load the
+    X509 credentials using :func:`gwdatafind.utils.find_credential`.
 
     Parameters
     ----------
@@ -56,9 +57,15 @@ def connect(host=None, port=None):
         else:
             port = int(port)
     if port not in (None, 80):
-        cert, key = find_credential()
         context = ssl.create_default_context()
-        context.load_cert_chain(cert, key)
+        token = find_scitoken(aud='host', scope='read:/LIGODataFind')
+        if token:
+            conn = HTTPSConnection(host=host, port=port, context=context)
+            conn.set_bearer_token(token._serialized_token)
+            return conn
+        else:
+            cert, key = find_credential()
+            context.load_cert_chain(cert, key)
         return HTTPSConnection(host=host, port=port, context=context)
     return HTTPConnection(host=host, port=port)
 
