@@ -119,3 +119,11 @@ def test_find_credential_environment(access, validate):
         'X509_USER_KEY': 'test_key',
     })
     assert utils.find_credential() == ('test_cert', 'test_key')
+
+
+@mock.patch('scitokens.SciToken.discover')
+@mock.patch('scitokens.Enforcer')
+def test_find_scitoken(enforcer, discover):
+    utils.find_scitoken(aud='testaud', scope='test:/scope')
+    discover.assert_called_once_with(audience='testaud')
+    enforcer.assert_called_once_with(discover()['iss'], audience='testaud')
