@@ -27,6 +27,9 @@ from OpenSSL import crypto
 
 from ligo.segments import segment
 
+import scitokens
+from scitokens.utils.errors import InvalidTokenFormat
+from jwt.exceptions import InvalidAudienceError
 
 def get_default_host():
     """Returns the default host as stored in the ``${LIGO_DATAFIND_SERVER}``
@@ -113,7 +116,7 @@ def find_credential():
     ------
     RuntimeError
         if not certificate files can be found, or if the files found on
-        disk cannot be validtted.
+        disk cannot be validated.
     """
     try:  # use X509_USER_PROXY from environment if set
         cert = key = os.environ['X509_USER_PROXY']
@@ -135,6 +138,66 @@ def find_credential():
 
     raise RuntimeError("Could not find a RFC 3820 compliant proxy credential. "
                        "Please run 'grid-proxy-init -rfc' and try again.")
+
+
+def find_scitoken(aud, scope):
+    """Locate a Scitoken for a given audience and scope.
+
+    This function checks for a SciToken using the WLCG token discovery
+    protocol. If token is found that matches the requested audience and scope
+    then it is returned. If no matching token is found using this protocol,
+    the function checks to see if HTCondor has created a SciToken with the
+    appropriate audience and scope in the _CONDOR_CREDS directory. Tokens in
+    _CONDOR_CREDS that do not have the correct audience and scope are ignored.
+
+    Parameters
+    ----------
+    aud : `str`
+        the audience of the scitoken
+
+    scope : `str`
+        the scope of the scitoken
+
+    Returns
+    -------
+    token_data : `SciToken`
+        the located token or None if no token for the specified
+        audience can be found
+
+    """
+    scheme, path = scope.split(':')
+    token = None
+
+    # look for a token in with WLCG Bearer Token Discovery protocol
+    try:
+        token = scitokens.SciToken.discover(audience=aud)
+        token_enforcer = scitokens.Enforcer(token['iss'], audience=aud)
+        if token_enforcer.test(token, scheme, path) is False:
+            raise ValueError
+    except:
+        # look for a condor-created scitoken for the target url
+        if os.environ.get('_CONDOR_CREDS'):
+            for f in os.listdir(os.environ['_CONDOR_CREDS']):
+                if f.endswith(".use"):
+                    try:
+                        with open(os.path.join(
+                                  os.environ['_CONDOR_CREDS'],f)) as t:
+                            token_data = t.read().strip()
+                            token = scitokens.SciToken.deserialize(token_data,
+                                                                 audience=aud)
+                            token_enforcer = scitokens.Enforcer(token['iss'],
+                                                                audience=aud)
+                            if token_enforcer.test(token, scheme, path) is False:
+                                raise ValueError
+                            break
+                    except (InvalidTokenFormat, InvalidAudienceError,
+                            ValueError):
+                        # ignore files that do not contain tokens
+                        # or that do not match audience and scope
+                        pass
+
+    # return the token or None if no matching token was found
+    return token
 
 
 # -- LIGO-T050017 filename parsing --------------------------------------------
